@@ -429,6 +429,194 @@ if(isMobile){
 
 }
 // =======================
+// ТЕЛЕФОН: ДЖОЙСТИК + СТРЕЛКИ
+// =======================
+
+let joystickX = 0;
+let joystickY = 0;
+
+let verticalMove = 0;
+
+
+if(isMobile){
+
+
+    // ===================
+    // ДЖОЙСТИК
+    // ===================
+
+    const joystickBase = document.createElement("div");
+
+    joystickBase.style.position = "fixed";
+    joystickBase.style.left = "40px";
+    joystickBase.style.bottom = "40px";
+    joystickBase.style.width = "130px";
+    joystickBase.style.height = "130px";
+    joystickBase.style.borderRadius = "50%";
+    joystickBase.style.background =
+    "rgba(255,255,255,0.25)";
+    joystickBase.style.zIndex = "9999";
+
+
+    document.body.appendChild(joystickBase);
+
+
+
+    const joystickStick = document.createElement("div");
+
+
+    joystickStick.style.position = "absolute";
+    joystickStick.style.left = "40px";
+    joystickStick.style.top = "40px";
+    joystickStick.style.width = "50px";
+    joystickStick.style.height = "50px";
+    joystickStick.style.borderRadius = "50%";
+    joystickStick.style.background =
+    "rgba(255,255,255,0.8)";
+
+
+    joystickBase.appendChild(joystickStick);
+
+
+
+    joystickBase.addEventListener(
+    "touchmove",
+    (e)=>{
+
+        e.preventDefault();
+
+
+        const touch = e.touches[0];
+
+        const rect =
+        joystickBase.getBoundingClientRect();
+
+
+        let x =
+        touch.clientX - (rect.left + 65);
+
+        let y =
+        touch.clientY - (rect.top + 65);
+
+
+
+        const max = 45;
+
+
+        x = Math.max(-max, Math.min(max,x));
+        y = Math.max(-max, Math.min(max,y));
+
+
+
+        joystickStick.style.left =
+        40 + x + "px";
+
+
+        joystickStick.style.top =
+        40 + y + "px";
+
+
+
+        joystickX = x / max;
+        joystickY = y / max;
+
+
+    },
+    {passive:false}
+    );
+
+
+
+    joystickBase.addEventListener(
+    "touchend",
+    ()=>{
+
+        joystickX = 0;
+        joystickY = 0;
+
+
+        joystickStick.style.left="40px";
+        joystickStick.style.top="40px";
+
+    });
+
+
+
+
+    // ===================
+    // СТРЕЛКИ ВВЕРХ / ВНИЗ
+    // ===================
+
+
+    function createButton(text,bottom){
+
+        const btn =
+        document.createElement("button");
+
+
+        btn.innerHTML = text;
+
+        btn.style.position="fixed";
+        btn.style.right="40px";
+        btn.style.bottom=bottom;
+        btn.style.width="75px";
+        btn.style.height="75px";
+        btn.style.borderRadius="50%";
+        btn.style.fontSize="35px";
+        btn.style.zIndex="9999";
+
+
+        document.body.appendChild(btn);
+
+
+        return btn;
+
+    }
+
+
+
+    const up =
+    createButton("⬆️","140px");
+
+
+    const down =
+    createButton("⬇️","50px");
+
+
+
+    up.addEventListener(
+    "touchstart",
+    ()=>{
+        verticalMove = 1;
+    });
+
+
+
+    up.addEventListener(
+    "touchend",
+    ()=>{
+        verticalMove = 0;
+    });
+
+
+
+    down.addEventListener(
+    "touchstart",
+    ()=>{
+        verticalMove = -1;
+    });
+
+
+
+    down.addEventListener(
+    "touchend",
+    ()=>{
+        verticalMove = 0;
+    });
+
+
+}
+// =======================
 // ИГРОВОЙ ЦИКЛ
 // =======================
 
