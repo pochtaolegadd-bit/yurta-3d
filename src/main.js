@@ -12,7 +12,6 @@ scene.background =
 new THREE.Color(0xdcefff);
 
 
-
 // =======================
 // КАМЕРА
 // =======================
@@ -26,12 +25,12 @@ new THREE.PerspectiveCamera(
 );
 
 
-// стартовая позиция
+// старт
 
 camera.position.set(
     0,
-    3,
-    10
+    5,
+    15
 );
 
 
@@ -61,7 +60,6 @@ renderer.domElement
 
 
 
-
 // =======================
 // СВЕТ
 // =======================
@@ -73,29 +71,28 @@ new THREE.AmbientLight(
 ));
 
 
-
-const sun =
+const light =
 new THREE.DirectionalLight(
     0xffffff,
     3
 );
 
 
-sun.position.set(
+light.position.set(
     5,
     10,
     5
 );
 
 
-scene.add(sun);
+scene.add(light);
 
 
 
 
 
 // =======================
-// ЗАГРУЗКА ЮРТЫ
+// ЮРТА
 // =======================
 
 const loader =
@@ -114,7 +111,7 @@ gltf.scene;
 
 
 
-// ставим юрту в центр
+// ставим модель в центр
 
 const box =
 new THREE.Box3()
@@ -145,24 +142,26 @@ console.log(
 
 
 
-camera.lookAt(
-0,
-3,
-0
-);
-
-
-
 },
+
 
 undefined,
 
 
 (error)=>{
 
-console.error(error);
+console.error(
+error
+);
 
 });
+
+
+
+
+
+
+
 // =======================
 // КЛАВИАТУРА
 // =======================
@@ -180,7 +179,6 @@ keys[e.key.toLowerCase()] = true;
 });
 
 
-
 document.addEventListener(
 "keyup",
 (e)=>{
@@ -194,7 +192,7 @@ keys[e.key.toLowerCase()] = false;
 
 
 // =======================
-// КАМЕРА ПК (МЫШЬ)
+// МЫШЬ
 // =======================
 
 let yaw = 0;
@@ -209,6 +207,7 @@ document.body.addEventListener(
 document.body.requestPointerLock();
 
 });
+
 
 
 
@@ -229,110 +228,20 @@ pitch -= e.movementY * 0.002;
 
 
 
-pitch = Math.max(
+pitch=Math.max(
 -Math.PI/2,
 Math.min(Math.PI/2,pitch)
 );
 
 
 
-camera.rotation.order =
-"YXZ";
+camera.rotation.order="YXZ";
 
 
-camera.rotation.y =
-yaw;
+camera.rotation.y=yaw;
 
 
-camera.rotation.x =
-pitch;
-
-
-}
-
-});
-
-
-
-
-
-
-// =======================
-// ТЕЛЕФОН
-// =======================
-
-const isMobile =
-'ontouchstart' in window ||
-navigator.maxTouchPoints > 0;
-
-
-
-let cameraTouchId = null;
-
-
-let touchX = 0;
-let touchY = 0;
-
-
-
-let joystickX = 0;
-let joystickY = 0;
-
-
-let verticalMove = 0;
-
-
-
-
-
-
-// =======================
-// ПОВОРОТ КАМЕРЫ ВТОРЫМ ПАЛЬЦЕМ
-// =======================
-
-if(isMobile){
-
-
-
-document.addEventListener(
-"touchstart",
-(e)=>{
-
-
-for(
-const touch of e.changedTouches
-){
-
-
-
-// если это джойстик или кнопки - игнорируем
-
-if(
-touch.target.classList.contains(
-"mobileControl"
-)
-)
-continue;
-
-
-
-
-if(cameraTouchId === null){
-
-
-cameraTouchId =
-touch.identifier;
-
-
-touchX =
-touch.clientX;
-
-
-touchY =
-touch.clientY;
-
-
-}
+camera.rotation.x=pitch;
 
 
 }
@@ -344,425 +253,19 @@ touch.clientY;
 
 
 
-
-
-document.addEventListener(
-"touchmove",
-(e)=>{
-
-
-for(
-const touch of e.changedTouches
-){
-
-
-if(
-touch.identifier !== cameraTouchId
-)
-continue;
-
-
-
-let dx =
-touch.clientX - touchX;
-
-
-
-let dy =
-touch.clientY - touchY;
-
-
-
-yaw -= dx * 0.005;
-
-
-pitch -= dy * 0.005;
-
-
-
-pitch = Math.max(
--Math.PI/2,
-Math.min(Math.PI/2,pitch)
-);
-
-
-
-camera.rotation.order =
-"YXZ";
-
-
-camera.rotation.y =
-yaw;
-
-
-camera.rotation.x =
-pitch;
-
-
-
-
-touchX =
-touch.clientX;
-
-
-touchY =
-touch.clientY;
-
-
-}
-
-
-},
-{
-passive:true
-}
-);
-
-
-
-
-
-document.addEventListener(
-"touchend",
-(e)=>{
-
-
-for(
-const touch of e.changedTouches
-){
-
-
-if(
-touch.identifier === cameraTouchId
-){
-
-cameraTouchId = null;
-
-}
-
-
-}
-
-
-});
-
-
-}
 // =======================
-// МОБИЛЬНЫЙ ДЖОЙСТИК И КНОПКИ
+// СВОБОДНЫЙ ПОЛЁТ
 // =======================
 
-if(isMobile){
-
-
-
-// =======================
-// ДЖОЙСТИК
-// =======================
-
-
-const joystickBase =
-document.createElement("div");
-
-
-joystickBase.className =
-"mobileControl";
-
-
-Object.assign(
-joystickBase.style,
-{
-position:"fixed",
-left:"40px",
-bottom:"40px",
-width:"130px",
-height:"130px",
-borderRadius:"50%",
-background:"rgba(255,255,255,0.25)",
-zIndex:"9999",
-touchAction:"none"
-}
-);
-
-
-document.body.appendChild(
-joystickBase
-);
-
-
-
-
-const joystickStick =
-document.createElement("div");
-
-
-joystickStick.className =
-"mobileControl";
-
-
-Object.assign(
-joystickStick.style,
-{
-position:"absolute",
-left:"40px",
-top:"40px",
-width:"50px",
-height:"50px",
-borderRadius:"50%",
-background:"white",
-}
-);
-
-
-joystickBase.appendChild(
-joystickStick
-);
-
-
-
-
-
-joystickBase.addEventListener(
-"touchmove",
-(e)=>{
-
-
-e.preventDefault();
-
-e.stopPropagation();
-
-
-
-const touch =
-e.touches[0];
-
-
-const rect =
-joystickBase.getBoundingClientRect();
-
-
-
-let x =
-touch.clientX -
-(rect.left + 65);
-
-
-
-let y =
-touch.clientY -
-(rect.top + 65);
-
-
-
-const max = 45;
-
-
-
-x=Math.max(
--max,
-Math.min(max,x)
-);
-
-
-
-y=Math.max(
--max,
-Math.min(max,y)
-);
-
-
-
-joystickStick.style.left =
-40+x+"px";
-
-
-joystickStick.style.top =
-40+y+"px";
-
-
-
-joystickX =
-x/max;
-
-
-joystickY =
-y/max;
-
-
-
-},
-{
-passive:false
-}
-);
-
-
-
-
-
-joystickBase.addEventListener(
-"touchend",
-()=>{
-
-
-joystickX = 0;
-joystickY = 0;
-
-
-
-joystickStick.style.left =
-"40px";
-
-
-joystickStick.style.top =
-"40px";
-
-
-});
-
-
-
-
-
-
-
-// =======================
-// КНОПКИ ВВЕРХ / ВНИЗ
-// =======================
-
-
-function createMobileButton(
-text,
-bottom
-){
-
-
-const button =
-document.createElement("button");
-
-
-button.className =
-"mobileControl";
-
-
-button.textContent =
-text;
-
-
-
-Object.assign(
-button.style,
-{
-position:"fixed",
-right:"40px",
-bottom:bottom,
-width:"75px",
-height:"75px",
-borderRadius:"50%",
-fontSize:"35px",
-zIndex:"9999",
-userSelect:"none",
-webkitUserSelect:"none",
-webkitTouchCallout:"none",
-touchAction:"none"
-}
-);
-
-
-
-document.body.appendChild(
-button
-);
-
-
-
-return button;
-
-}
-
-
-
-
-const upButton =
-createMobileButton(
-"⬆️",
-"140px"
-);
-
-
-
-const downButton =
-createMobileButton(
-"⬇️",
-"50px"
-);
-
-
-
-
-
-upButton.addEventListener(
-"touchstart",
-(e)=>{
-
-e.stopPropagation();
-
-verticalMove = 1;
-
-});
-
-
-
-upButton.addEventListener(
-"touchend",
-()=>{
-
-verticalMove = 0;
-
-});
-
-
-
-
-
-downButton.addEventListener(
-"touchstart",
-(e)=>{
-
-e.stopPropagation();
-
-verticalMove = -1;
-
-});
-
-
-
-downButton.addEventListener(
-"touchend",
-()=>{
-
-verticalMove = 0;
-
-});
-
-
-
-}
-// =======================
-// ДВИЖЕНИЕ
-// =======================
-
-const speed = 0.08;
+const speed = 0.15;
 
 
 
 function updateMovement(){
 
 
-
 const forward =
 new THREE.Vector3();
-
 
 
 camera.getWorldDirection(
@@ -770,16 +273,9 @@ forward
 );
 
 
-forward.y = 0;
-
-forward.normalize();
-
-
-
 
 const right =
 new THREE.Vector3();
-
 
 
 right.crossVectors(
@@ -788,16 +284,14 @@ new THREE.Vector3(0,1,0)
 );
 
 
+
 right.normalize();
 
 
 
 
 
-// =======================
-// ПК WASD / ЦФЫВ
-// =======================
-
+// вперёд
 
 if(keys["w"] || keys["ц"]){
 
@@ -810,6 +304,8 @@ forward.clone()
 
 
 
+// назад
+
 if(keys["s"] || keys["ы"]){
 
 camera.position.add(
@@ -820,6 +316,8 @@ forward.clone()
 }
 
 
+
+// влево
 
 if(keys["a"] || keys["ф"]){
 
@@ -832,6 +330,8 @@ right.clone()
 
 
 
+// вправо
+
 if(keys["d"] || keys["в"]){
 
 camera.position.add(
@@ -843,37 +343,21 @@ right.clone()
 
 
 
+// вверх
 
+if(keys[" "] ){
 
-// =======================
-// ТЕЛЕФОН
-// =======================
+camera.position.y += speed;
 
-
-if(isMobile){
-
-
-camera.position.add(
-forward.clone()
-.multiplyScalar(
--joystickY * speed
-)
-);
+}
 
 
 
-camera.position.add(
-right.clone()
-.multiplyScalar(
-joystickX * speed
-)
-);
+// вниз
 
+if(keys["shift"]){
 
-
-camera.position.y +=
-verticalMove * speed;
-
+camera.position.y -= speed;
 
 }
 
@@ -884,12 +368,12 @@ verticalMove * speed;
 
 
 
+
 // =======================
-// ЗАПУСК
+// ИГРОВОЙ ЦИКЛ
 // =======================
 
 function animate(){
-
 
 requestAnimationFrame(
 animate
@@ -910,7 +394,6 @@ camera
 }
 
 
-
 animate();
 
 
@@ -919,9 +402,8 @@ animate();
 
 
 // =======================
-// РАЗМЕР ЭКРАНА
+// RESIZE
 // =======================
-
 
 window.addEventListener(
 "resize",
@@ -933,9 +415,7 @@ window.innerWidth /
 window.innerHeight;
 
 
-
 camera.updateProjectionMatrix();
-
 
 
 renderer.setSize(
