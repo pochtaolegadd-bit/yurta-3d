@@ -26,12 +26,12 @@ new THREE.PerspectiveCamera(
 );
 
 
-// точка появления
+// появление возле входа
 
 camera.position.set(
     0,
     2,
-    6
+    4
 );
 
 
@@ -61,6 +61,7 @@ document.body.appendChild(
 
 
 
+
 // =======================
 // СВЕТ
 // =======================
@@ -70,6 +71,7 @@ new THREE.AmbientLight(
     0xffffff,
     2
 );
+
 
 scene.add(ambient);
 
@@ -102,33 +104,54 @@ const loader =
 new GLTFLoader();
 
 
+
 loader.load(
 "/yurta.glb",
 
 (gltf)=>{
 
-    const yurta =
-    gltf.scene;
+
+const yurta =
+gltf.scene;
 
 
-    scene.add(yurta);
+scene.add(
+yurta
+);
 
 
-    console.log(
-        "Юрта загружена"
-    );
+console.log(
+"Юрта загружена"
+);
+
+
+
+// точка появления
+
+camera.position.set(
+    0,
+    2,
+    4
+);
+
+
+camera.lookAt(
+    0,
+    2,
+    0
+);
+
 
 },
 
 undefined,
 
+
 (error)=>{
 
-    console.error(error);
+console.error(error);
 
-}
-
-);
+});
 // =======================
 // КЛАВИАТУРА
 // =======================
@@ -157,7 +180,7 @@ document.addEventListener(
 
 
 // =======================
-// POINTER LOCK (ПК)
+// МЫШЬ ПК POINTER LOCK
 // =======================
 
 let yaw = 0;
@@ -175,40 +198,41 @@ document.body.addEventListener(
 
 
 
+
 document.addEventListener(
 "mousemove",
 (e)=>{
 
 
-    if(
-        document.pointerLockElement === document.body
-    ){
-
-        yaw -= e.movementX * 0.002;
-
-        pitch -= e.movementY * 0.002;
+if(
+document.pointerLockElement === document.body
+){
 
 
+yaw -= e.movementX * 0.002;
 
-        pitch = Math.max(
-            -Math.PI / 2,
-            Math.min(
-                Math.PI / 2,
-                pitch
-            )
-        );
+
+pitch -= e.movementY * 0.002;
 
 
 
-        camera.rotation.order="YXZ";
+pitch = Math.max(
+    -Math.PI/2,
+    Math.min(Math.PI/2,pitch)
+);
 
 
-        camera.rotation.y = yaw;
 
-        camera.rotation.x = pitch;
+camera.rotation.order="YXZ";
 
-    }
 
+camera.rotation.y=yaw;
+
+
+camera.rotation.x=pitch;
+
+
+}
 
 });
 
@@ -217,7 +241,7 @@ document.addEventListener(
 
 
 // =======================
-// ТЕЛЕФОН
+// МОБИЛЬНОЕ УПРАВЛЕНИЕ
 // =======================
 
 const isMobile =
@@ -226,14 +250,26 @@ navigator.maxTouchPoints > 0;
 
 
 
+let joystickX = 0;
+let joystickY = 0;
+
+let verticalMove = 0;
+
+
+
+// камера телефона
+
+let cameraTouchId = null;
+
+
 let touchX = 0;
 let touchY = 0;
 
 
-// можно ли сейчас вращать камеру
 
-let cameraControl = false;
-
+// =======================
+// ПОВОРОТ КАМЕРЫ ВТОРЫМ ПАЛЬЦЕМ
+// =======================
 
 
 if(isMobile){
@@ -245,40 +281,48 @@ document.addEventListener(
 (e)=>{
 
 
-    // если нажали на управление
-    // камеру не трогаем
-
-    if(
-        e.target.classList.contains(
-            "mobileControl"
-        )
-    ){
-
-        cameraControl = false;
-
-        return;
-
-    }
+for(
+let touch of e.changedTouches
+){
 
 
 
-    cameraControl = true;
+// если это джойстик или кнопка
+
+if(
+touch.target.classList.contains(
+"mobileControl"
+)
+)
+continue;
 
 
 
-    touchX =
-    e.touches[0].clientX;
+
+// берём палец для камеры
+
+if(cameraTouchId === null){
 
 
-    touchY =
-    e.touches[0].clientY;
+cameraTouchId =
+touch.identifier;
 
 
-},
-{
-    passive:true
+touchX =
+touch.clientX;
+
+
+touchY =
+touch.clientY;
+
+
 }
-);
+
+
+}
+
+
+});
 
 
 
@@ -289,56 +333,59 @@ document.addEventListener(
 (e)=>{
 
 
-    if(!cameraControl)
-    return;
+for(
+let touch of e.changedTouches
+){
 
 
 
-    let dx =
-    e.touches[0].clientX - touchX;
+if(
+touch.identifier !== cameraTouchId
+)
+continue;
 
 
 
-    let dy =
-    e.touches[0].clientY - touchY;
+let dx =
+touch.clientX-touchX;
+
+
+let dy =
+touch.clientY-touchY;
 
 
 
-    yaw -= dx * 0.005;
+yaw -= dx*0.005;
 
 
-    pitch -= dy * 0.005;
-
-
-
-    pitch = Math.max(
-        -Math.PI/2,
-        Math.min(
-            Math.PI/2,
-            pitch
-        )
-    );
+pitch -= dy*0.005;
 
 
 
-    camera.rotation.order="YXZ";
-
-
-    camera.rotation.y=yaw;
-
-
-    camera.rotation.x=pitch;
+pitch=Math.max(
+-Math.PI/2,
+Math.min(Math.PI/2,pitch)
+);
 
 
 
-
-    touchX =
-    e.touches[0].clientX;
+camera.rotation.order="YXZ";
 
 
-    touchY =
-    e.touches[0].clientY;
+camera.rotation.y=yaw;
 
+
+camera.rotation.x=pitch;
+
+
+
+touchX=touch.clientX;
+
+touchY=touch.clientY;
+
+
+
+}
 
 
 },
@@ -348,113 +395,157 @@ passive:true
 );
 
 
+
+
+
+document.addEventListener(
+"touchend",
+(e)=>{
+
+
+for(
+let touch of e.changedTouches
+){
+
+
+if(
+touch.identifier === cameraTouchId
+){
+
+cameraTouchId=null;
+
+}
+
+
+}
+
+
+});
+
+
 }
 // =======================
-// МОБИЛЬНЫЙ ДЖОЙСТИК
+// МОБИЛЬНЫЙ ДЖОЙСТИК И КНОПКИ
 // =======================
-
-let joystickX = 0;
-let joystickY = 0;
-
-let verticalMove = 0;
-
-
 
 if(isMobile){
 
 
-// ---------- база джойстика ----------
 
-const joystick =
+// =======================
+// ДЖОЙСТИК
+// =======================
+
+
+const joystickBase =
 document.createElement("div");
 
 
-joystick.className =
+joystickBase.className =
 "mobileControl";
 
 
-joystick.style.position="fixed";
-joystick.style.left="40px";
-joystick.style.bottom="40px";
-joystick.style.width="130px";
-joystick.style.height="130px";
-joystick.style.borderRadius="50%";
-joystick.style.background=
+joystickBase.style.position="fixed";
+joystickBase.style.left="40px";
+joystickBase.style.bottom="40px";
+joystickBase.style.width="130px";
+joystickBase.style.height="130px";
+joystickBase.style.borderRadius="50%";
+joystickBase.style.background=
 "rgba(255,255,255,0.25)";
-joystick.style.zIndex="9999";
-joystick.style.touchAction="none";
+joystickBase.style.zIndex="9999";
+joystickBase.style.touchAction="none";
+
 
 
 document.body.appendChild(
-joystick
+joystickBase
 );
 
 
 
-// ---------- ручка ----------
 
-const stick =
+const joystickStick =
 document.createElement("div");
 
 
-stick.className =
+joystickStick.className =
 "mobileControl";
 
 
-stick.style.position="absolute";
-stick.style.left="40px";
-stick.style.top="40px";
-stick.style.width="50px";
-stick.style.height="50px";
-stick.style.borderRadius="50%";
-stick.style.background="white";
+joystickStick.style.position="absolute";
+joystickStick.style.left="40px";
+joystickStick.style.top="40px";
+joystickStick.style.width="50px";
+joystickStick.style.height="50px";
+joystickStick.style.borderRadius="50%";
+joystickStick.style.background="white";
 
 
-joystick.appendChild(
-stick
+
+joystickBase.appendChild(
+joystickStick
 );
 
 
 
 
 
-joystick.addEventListener(
+
+joystickBase.addEventListener(
+"touchstart",
+(e)=>{
+
+
+// говорим браузеру:
+// этот палец занят джойстиком
+
+e.stopPropagation();
+
+
+},
+{
+passive:true
+}
+);
+
+
+
+
+joystickBase.addEventListener(
 "touchmove",
 (e)=>{
 
 
-// ВАЖНО:
-// джойстик не вращает камеру
-
 e.stopPropagation();
-
 
 e.preventDefault();
 
 
 
-const touch =
+let touch =
 e.touches[0];
 
 
-const rect =
-joystick.getBoundingClientRect();
+
+let rect =
+joystickBase.getBoundingClientRect();
 
 
 
 let x =
 touch.clientX -
-(rect.left + 65);
+(rect.left+65);
 
 
 
 let y =
 touch.clientY -
-(rect.top + 65);
+(rect.top+65);
 
 
 
-const max = 45;
+let max = 45;
 
 
 
@@ -471,11 +562,11 @@ Math.min(max,y)
 
 
 
-stick.style.left =
+joystickStick.style.left =
 40+x+"px";
 
 
-stick.style.top =
+joystickStick.style.top =
 40+y+"px";
 
 
@@ -488,7 +579,6 @@ joystickY =
 y/max;
 
 
-
 },
 {
 passive:false
@@ -497,12 +587,10 @@ passive:false
 
 
 
-joystick.addEventListener(
+
+joystickBase.addEventListener(
 "touchend",
-(e)=>{
-
-
-e.stopPropagation();
+()=>{
 
 
 joystickX=0;
@@ -510,9 +598,9 @@ joystickX=0;
 joystickY=0;
 
 
-stick.style.left="40px";
+joystickStick.style.left="40px";
 
-stick.style.top="40px";
+joystickStick.style.top="40px";
 
 
 });
@@ -533,48 +621,52 @@ bottom
 ){
 
 
-const btn =
+const button =
 document.createElement("button");
 
 
-btn.className =
+button.className =
 "mobileControl";
 
 
-btn.innerHTML=text;
+button.innerHTML =
+text;
 
 
 
-btn.style.position="fixed";
-btn.style.right="40px";
-btn.style.bottom=bottom;
-btn.style.width="75px";
-btn.style.height="75px";
-btn.style.borderRadius="50%";
-btn.style.fontSize="35px";
-btn.style.zIndex="9999";
+button.style.position="fixed";
+button.style.right="40px";
+button.style.bottom=bottom;
+button.style.width="75px";
+button.style.height="75px";
+button.style.borderRadius="50%";
+button.style.fontSize="35px";
+button.style.zIndex="9999";
 
 
-// нельзя выделять
+// запрещаем выделение
 
-btn.style.userSelect="none";
-btn.style.webkitUserSelect="none";
-btn.style.touchAction="none";
+button.style.userSelect="none";
+button.style.webkitUserSelect="none";
+button.style.webkitTouchCallout="none";
+button.style.touchAction="none";
 
 
 
 document.body.appendChild(
-btn
+button
 );
 
 
-return btn;
+return button;
 
 }
 
 
 
-const up =
+
+
+const upButton =
 createButton(
 "⬆️",
 "140px"
@@ -582,7 +674,7 @@ createButton(
 
 
 
-const down =
+const downButton =
 createButton(
 "⬇️",
 "50px"
@@ -590,7 +682,9 @@ createButton(
 
 
 
-up.addEventListener(
+
+
+upButton.addEventListener(
 "touchstart",
 (e)=>{
 
@@ -598,21 +692,25 @@ e.stopPropagation();
 
 verticalMove=1;
 
-});
+}
+);
 
 
 
-up.addEventListener(
+upButton.addEventListener(
 "touchend",
 ()=>{
 
 verticalMove=0;
 
-});
+}
+);
 
 
 
-down.addEventListener(
+
+
+downButton.addEventListener(
 "touchstart",
 (e)=>{
 
@@ -620,26 +718,23 @@ e.stopPropagation();
 
 verticalMove=-1;
 
-});
+}
+);
 
 
 
-down.addEventListener(
+downButton.addEventListener(
 "touchend",
 ()=>{
 
 verticalMove=0;
 
-});
+}
+);
+
 
 
 }
-
-
-
-
-
-
 // =======================
 // ДВИЖЕНИЕ
 // =======================
@@ -647,12 +742,19 @@ verticalMove=0;
 const speed = 0.08;
 
 
+// минимальная высота над землей
+
+const groundHeight = 2;
+
+
 
 function updateMovement(){
 
 
+
 const forward =
 new THREE.Vector3();
+
 
 
 camera.getWorldDirection(
@@ -660,14 +762,17 @@ forward
 );
 
 
-forward.y=0;
+forward.y = 0;
+
 
 forward.normalize();
 
 
 
+
 const right =
 new THREE.Vector3();
+
 
 
 right.crossVectors(
@@ -676,77 +781,105 @@ new THREE.Vector3(0,1,0)
 );
 
 
+
 right.normalize();
 
 
 
 
+// =======================
 // ПК
+// =======================
 
 
-if(keys["w"] || keys["ц"])
+if(keys["w"] || keys["ц"]){
+
 camera.position.add(
 forward.clone()
 .multiplyScalar(speed)
 );
 
+}
 
 
-if(keys["s"] || keys["ы"])
+
+if(keys["s"] || keys["ы"]){
+
 camera.position.add(
 forward.clone()
 .multiplyScalar(-speed)
 );
 
+}
 
 
-if(keys["a"] || keys["ф"])
+
+if(keys["a"] || keys["ф"]){
+
 camera.position.add(
 right.clone()
 .multiplyScalar(-speed)
 );
 
+}
 
 
-if(keys["d"] || keys["в"])
+
+if(keys["d"] || keys["в"]){
+
 camera.position.add(
 right.clone()
 .multiplyScalar(speed)
 );
 
+}
 
 
-if(keys[" "])
+
+if(keys[" "]){
+
 camera.position.y += speed;
 
+}
 
 
-if(keys["shift"])
+
+if(keys["shift"]){
+
 camera.position.y -= speed;
 
+}
 
 
 
-// ТЕЛЕФОН
+
+// =======================
+// ТЕЛЕФОН ДЖОЙСТИК
+// =======================
 
 
 if(isMobile){
 
 
+
 camera.position.add(
+
 forward.clone()
 .multiplyScalar(
 -joystickY * speed
 )
+
 );
 
 
 
 camera.position.add(
+
 right.clone()
 .multiplyScalar(
 joystickX * speed
 )
+
 );
 
 
@@ -755,7 +888,25 @@ camera.position.y +=
 verticalMove * speed;
 
 
+
 }
+
+
+
+// =======================
+// ЗАЩИТА ОТ ТРАВЫ/ЗЕМЛИ
+// =======================
+
+
+if(
+camera.position.y < groundHeight
+){
+
+camera.position.y =
+groundHeight;
+
+}
+
 
 
 }
@@ -764,8 +915,9 @@ verticalMove * speed;
 
 
 // =======================
-// ЗАПУСК
+// ИГРОВОЙ ЦИКЛ
 // =======================
+
 
 function animate(){
 
@@ -786,6 +938,7 @@ camera
 );
 
 
+
 }
 
 
@@ -795,8 +948,9 @@ animate();
 
 
 // =======================
-// RESIZE
+// ИЗМЕНЕНИЕ РАЗМЕРА
 // =======================
+
 
 window.addEventListener(
 "resize",
@@ -808,6 +962,7 @@ window.innerWidth /
 window.innerHeight;
 
 
+
 camera.updateProjectionMatrix();
 
 
@@ -816,6 +971,7 @@ renderer.setSize(
 window.innerWidth,
 window.innerHeight
 );
+
 
 
 });
