@@ -8,14 +8,17 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const scene = new THREE.Scene();
 
-scene.background = new THREE.Color(0xdcefff);
+scene.background =
+new THREE.Color(0xdcefff);
+
 
 
 // =======================
 // КАМЕРА
 // =======================
 
-const camera = new THREE.PerspectiveCamera(
+const camera =
+new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
     0.1,
@@ -23,7 +26,7 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 
-// точка появления возле юрты
+// точка появления
 
 camera.position.set(
     0,
@@ -62,36 +65,32 @@ document.body.appendChild(
 // СВЕТ
 // =======================
 
-const ambientLight =
+const ambient =
 new THREE.AmbientLight(
     0xffffff,
     2
 );
 
-
-scene.add(
-    ambientLight
-);
+scene.add(ambient);
 
 
 
-const dirLight =
+const light =
 new THREE.DirectionalLight(
     0xffffff,
     3
 );
 
 
-dirLight.position.set(
+light.position.set(
     5,
     10,
     5
 );
 
 
-scene.add(
-    dirLight
-);
+scene.add(light);
+
 
 
 
@@ -103,41 +102,35 @@ const loader =
 new GLTFLoader();
 
 
-
 loader.load(
-    "/yurta.glb",
+"/yurta.glb",
 
-    (gltf)=>{
+(gltf)=>{
 
-
-        const model =
-        gltf.scene;
-
-
-        scene.add(
-            model
-        );
+    const yurta =
+    gltf.scene;
 
 
-        console.log(
-            "Юрта загружена"
-        );
+    scene.add(yurta);
 
 
-    },
+    console.log(
+        "Юрта загружена"
+    );
 
-    undefined,
+},
 
+undefined,
 
-    (error)=>{
+(error)=>{
 
-        console.error(error);
+    console.error(error);
 
-    }
+}
 
 );
 // =======================
-// УПРАВЛЕНИЕ КЛАВИАТУРОЙ
+// КЛАВИАТУРА
 // =======================
 
 const keys = {};
@@ -182,7 +175,6 @@ document.body.addEventListener(
 
 
 
-
 document.addEventListener(
 "mousemove",
 (e)=>{
@@ -192,9 +184,7 @@ document.addEventListener(
         document.pointerLockElement === document.body
     ){
 
-
         yaw -= e.movementX * 0.002;
-
 
         pitch -= e.movementY * 0.002;
 
@@ -210,14 +200,12 @@ document.addEventListener(
 
 
 
-        camera.rotation.order = "YXZ";
+        camera.rotation.order="YXZ";
 
 
         camera.rotation.y = yaw;
 
-
         camera.rotation.x = pitch;
-
 
     }
 
@@ -227,11 +215,10 @@ document.addEventListener(
 
 
 
+
 // =======================
 // ТЕЛЕФОН
-// ПОВОРОТ КАМЕРЫ СВАЙПОМ
 // =======================
-
 
 const isMobile =
 'ontouchstart' in window ||
@@ -243,7 +230,9 @@ let touchX = 0;
 let touchY = 0;
 
 
-let canRotateCamera = false;
+// можно ли сейчас вращать камеру
+
+let cameraControl = false;
 
 
 
@@ -257,13 +246,15 @@ document.addEventListener(
 
 
     // если нажали на управление
-    // камеру не крутим
+    // камеру не трогаем
 
     if(
-        e.target.classList.contains("mobileControl")
+        e.target.classList.contains(
+            "mobileControl"
+        )
     ){
 
-        canRotateCamera = false;
+        cameraControl = false;
 
         return;
 
@@ -271,7 +262,7 @@ document.addEventListener(
 
 
 
-    canRotateCamera = true;
+    cameraControl = true;
 
 
 
@@ -283,7 +274,12 @@ document.addEventListener(
     e.touches[0].clientY;
 
 
-});
+},
+{
+    passive:true
+}
+);
+
 
 
 
@@ -293,7 +289,7 @@ document.addEventListener(
 (e)=>{
 
 
-    if(!canRotateCamera)
+    if(!cameraControl)
     return;
 
 
@@ -302,9 +298,9 @@ document.addEventListener(
     e.touches[0].clientX - touchX;
 
 
+
     let dy =
     e.touches[0].clientY - touchY;
-
 
 
 
@@ -312,7 +308,6 @@ document.addEventListener(
 
 
     pitch -= dy * 0.005;
-
 
 
 
@@ -336,6 +331,7 @@ document.addEventListener(
 
 
 
+
     touchX =
     e.touches[0].clientX;
 
@@ -344,12 +340,17 @@ document.addEventListener(
     e.touches[0].clientY;
 
 
-});
+
+},
+{
+passive:true
+}
+);
 
 
 }
 // =======================
-// МОБИЛЬНОЕ УПРАВЛЕНИЕ
+// МОБИЛЬНЫЙ ДЖОЙСТИК
 // =======================
 
 let joystickX = 0;
@@ -362,90 +363,99 @@ let verticalMove = 0;
 if(isMobile){
 
 
-// =======================
-// ДЖОЙСТИК
-// =======================
+// ---------- база джойстика ----------
 
-
-const joystickBase =
+const joystick =
 document.createElement("div");
 
 
-joystickBase.className =
+joystick.className =
 "mobileControl";
 
 
-joystickBase.style.position="fixed";
-joystickBase.style.left="40px";
-joystickBase.style.bottom="40px";
-joystickBase.style.width="130px";
-joystickBase.style.height="130px";
-joystickBase.style.borderRadius="50%";
-joystickBase.style.background=
+joystick.style.position="fixed";
+joystick.style.left="40px";
+joystick.style.bottom="40px";
+joystick.style.width="130px";
+joystick.style.height="130px";
+joystick.style.borderRadius="50%";
+joystick.style.background=
 "rgba(255,255,255,0.25)";
-joystickBase.style.zIndex="9999";
-joystickBase.style.touchAction="none";
+joystick.style.zIndex="9999";
+joystick.style.touchAction="none";
 
 
 document.body.appendChild(
-joystickBase
+joystick
 );
 
 
 
-const joystickStick =
+// ---------- ручка ----------
+
+const stick =
 document.createElement("div");
 
 
-joystickStick.className =
+stick.className =
 "mobileControl";
 
 
-joystickStick.style.position="absolute";
-joystickStick.style.left="40px";
-joystickStick.style.top="40px";
-joystickStick.style.width="50px";
-joystickStick.style.height="50px";
-joystickStick.style.borderRadius="50%";
-joystickStick.style.background="white";
+stick.style.position="absolute";
+stick.style.left="40px";
+stick.style.top="40px";
+stick.style.width="50px";
+stick.style.height="50px";
+stick.style.borderRadius="50%";
+stick.style.background="white";
 
 
-joystickBase.appendChild(
-joystickStick
+joystick.appendChild(
+stick
 );
 
 
 
 
-joystickBase.addEventListener(
+
+joystick.addEventListener(
 "touchmove",
 (e)=>{
+
+
+// ВАЖНО:
+// джойстик не вращает камеру
+
+e.stopPropagation();
 
 
 e.preventDefault();
 
 
-let touch =
+
+const touch =
 e.touches[0];
 
 
-let rect =
-joystickBase.getBoundingClientRect();
+const rect =
+joystick.getBoundingClientRect();
 
 
 
 let x =
 touch.clientX -
-(rect.left+65);
+(rect.left + 65);
+
 
 
 let y =
 touch.clientY -
-(rect.top+65);
+(rect.top + 65);
 
 
 
-let max=45;
+const max = 45;
+
 
 
 x=Math.max(
@@ -461,11 +471,11 @@ Math.min(max,y)
 
 
 
-joystickStick.style.left =
+stick.style.left =
 40+x+"px";
 
 
-joystickStick.style.top =
+stick.style.top =
 40+y+"px";
 
 
@@ -487,9 +497,12 @@ passive:false
 
 
 
-joystickBase.addEventListener(
+joystick.addEventListener(
 "touchend",
-()=>{
+(e)=>{
+
+
+e.stopPropagation();
 
 
 joystickX=0;
@@ -497,9 +510,9 @@ joystickX=0;
 joystickY=0;
 
 
-joystickStick.style.left="40px";
+stick.style.left="40px";
 
-joystickStick.style.top="40px";
+stick.style.top="40px";
 
 
 });
@@ -514,7 +527,10 @@ joystickStick.style.top="40px";
 // =======================
 
 
-function createButton(text,bottom){
+function createButton(
+text,
+bottom
+){
 
 
 const btn =
@@ -528,6 +544,7 @@ btn.className =
 btn.innerHTML=text;
 
 
+
 btn.style.position="fixed";
 btn.style.right="40px";
 btn.style.bottom=bottom;
@@ -538,18 +555,20 @@ btn.style.fontSize="35px";
 btn.style.zIndex="9999";
 
 
-// запрещаем копирование
+// нельзя выделять
 
 btn.style.userSelect="none";
 btn.style.webkitUserSelect="none";
 btn.style.touchAction="none";
 
 
-document.body.appendChild(btn);
+
+document.body.appendChild(
+btn
+);
 
 
 return btn;
-
 
 }
 
@@ -571,15 +590,15 @@ createButton(
 
 
 
-
 up.addEventListener(
 "touchstart",
-()=>{
+(e)=>{
+
+e.stopPropagation();
 
 verticalMove=1;
 
-}
-);
+});
 
 
 
@@ -589,19 +608,19 @@ up.addEventListener(
 
 verticalMove=0;
 
-}
-);
+});
 
 
 
 down.addEventListener(
 "touchstart",
-()=>{
+(e)=>{
+
+e.stopPropagation();
 
 verticalMove=-1;
 
-}
-);
+});
 
 
 
@@ -611,12 +630,13 @@ down.addEventListener(
 
 verticalMove=0;
 
-}
-);
-
+});
 
 
 }
+
+
+
 
 
 
@@ -631,10 +651,8 @@ const speed = 0.08;
 function updateMovement(){
 
 
-
 const forward =
 new THREE.Vector3();
-
 
 
 camera.getWorldDirection(
@@ -749,7 +767,6 @@ verticalMove * speed;
 // ЗАПУСК
 // =======================
 
-
 function animate(){
 
 
@@ -770,7 +787,6 @@ camera
 
 
 }
-
 
 
 animate();
