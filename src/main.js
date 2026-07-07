@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 // =======================
 // СЦЕНА
 // =======================
+console.log("Позиция юрты:", yurta.position);
 
 const scene = new THREE.Scene();
 
