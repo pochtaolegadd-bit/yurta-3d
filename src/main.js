@@ -154,11 +154,11 @@ size
 
 
 // камера перед юртой
-
+    
 camera.position.set(
-    center.x,
+    center.x - 5,
     center.y + 2,
-    center.z + size.z * 2
+    center.z + size.z * 6
 );
 
 
