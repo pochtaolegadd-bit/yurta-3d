@@ -5,8 +5,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 // =======================
 // СЦЕНА
 // =======================
-console.log("Позиция юрты:", yurta.position);
-
 const scene = new THREE.Scene();
 
 scene.background =
@@ -141,17 +139,16 @@ new THREE.Vector3()
 // спавн камеры возле юрты
 
 camera.position.set(
-    center.x,
-    center.y + 2,
-    center.z + size.z * 2
+    0.021,
+    6,
+    5
 );
-
-
 
 camera.lookAt(
-    center
+    0.021,
+    4.5,
+    -0.026
 );
-
 
 
 console.log(
