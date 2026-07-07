@@ -425,3 +425,22 @@ window.innerHeight
 
 
 });
+// =======================
+// МОБИЛЬНОЕ УПРАВЛЕНИЕ
+// =======================
+
+const isMobile =
+'ontouchstart' in window ||
+navigator.maxTouchPoints > 0;
+
+
+let joystickX = 0;
+let joystickY = 0;
+
+let verticalMove = 0;
+
+
+let cameraTouchId = null;
+
+let lastTouchX = 0;
+let lastTouchY = 0;
