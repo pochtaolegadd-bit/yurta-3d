@@ -13,7 +13,6 @@ new THREE.Color(0xdcefff);
 
 
 
-
 // =======================
 // КАМЕРА
 // =======================
@@ -35,7 +34,6 @@ camera.position.set(
 
 
 
-
 // =======================
 // РЕНДЕР
 // =======================
@@ -52,10 +50,10 @@ renderer.setSize(
 );
 
 
-document.body.style.margin="0";
+document.body.style.margin = "0";
 
 document.body.appendChild(
-renderer.domElement
+    renderer.domElement
 );
 
 
@@ -91,7 +89,6 @@ scene.add(light);
 
 
 
-
 // =======================
 // ЮРТА
 // =======================
@@ -112,7 +109,7 @@ gltf.scene;
 
 
 
-// убираем возможное смещение модели
+// ставим модель в центр
 
 const box =
 new THREE.Box3()
@@ -158,11 +155,13 @@ console.error(error);
 
 
 
+
 // =======================
 // КЛАВИАТУРА
 // =======================
 
 const keys = {};
+
 
 
 document.addEventListener(
@@ -172,6 +171,7 @@ document.addEventListener(
 keys[e.key.toLowerCase()] = true;
 
 });
+
 
 
 document.addEventListener(
@@ -185,12 +185,12 @@ keys[e.key.toLowerCase()] = false;
 
 
 
+
 // =======================
-// МЫШЬ
+// МЫШЬ ПК
 // =======================
 
 let yaw = 0;
-
 let pitch = 0;
 
 
@@ -217,16 +217,13 @@ document.pointerLockElement === document.body
 
 yaw -= e.movementX * 0.002;
 
-
 pitch -= e.movementY * 0.002;
-
 
 
 pitch=Math.max(
 -Math.PI/2,
 Math.min(Math.PI/2,pitch)
 );
-
 
 
 camera.rotation.order="YXZ";
@@ -241,20 +238,17 @@ camera.rotation.x=pitch;
 
 });
 // =======================
-// ТЕЛЕФОН
+// МОБИЛЬНОЕ УПРАВЛЕНИЕ
 // =======================
 
-const isMobile =
-'ontouchstart' in window ||
-navigator.maxTouchPoints > 0;
-
+// включаем принудительно для проверки
+const isMobile = true;
 
 
 let joystickX = 0;
 let joystickY = 0;
 
 let verticalMove = 0;
-
 
 
 let cameraTouchId = null;
@@ -265,17 +259,8 @@ let lastTouchY = 0;
 
 
 // =======================
-// МОБИЛЬНОЕ УПРАВЛЕНИЕ
+// КАМЕРА ВТОРЫМ ПАЛЬЦЕМ
 // =======================
-
-if(isMobile){
-
-
-
-// =======================
-// ПОВОРОТ КАМЕРЫ ВТОРЫМ ПАЛЬЦЕМ
-// =======================
-
 
 document.addEventListener(
 "touchstart",
@@ -343,9 +328,9 @@ touch.clientY-lastTouchY;
 
 
 
-yaw -= dx*0.005;
+yaw -= dx * 0.005;
 
-pitch -= dy*0.005;
+pitch -= dy * 0.005;
 
 
 
@@ -357,6 +342,7 @@ Math.min(Math.PI/2,pitch)
 
 
 camera.rotation.order="YXZ";
+
 
 camera.rotation.y=yaw;
 
@@ -374,6 +360,9 @@ touch.clientY;
 
 }
 
+},
+{
+passive:true
 });
 
 
@@ -404,21 +393,22 @@ cameraTouchId=null;
 
 
 
+
 // =======================
 // ДЖОЙСТИК
 // =======================
 
 
-const base =
+const joystick =
 document.createElement("div");
 
 
-base.className =
+joystick.className =
 "mobileControl";
 
 
 Object.assign(
-base.style,
+joystick.style,
 {
 position:"fixed",
 left:"40px",
@@ -426,14 +416,16 @@ bottom:"40px",
 width:"130px",
 height:"130px",
 borderRadius:"50%",
-background:"rgba(255,255,255,0.25)",
-zIndex:"9999",
+background:"rgba(255,255,255,0.3)",
+zIndex:"99999",
 touchAction:"none"
 }
 );
 
 
-document.body.appendChild(base);
+document.body.appendChild(
+joystick
+);
 
 
 
@@ -455,17 +447,20 @@ top:"40px",
 width:"50px",
 height:"50px",
 borderRadius:"50%",
-background:"white"
+background:"#ffffff"
 }
 );
 
 
-base.appendChild(stick);
+joystick.appendChild(
+stick
+);
 
 
 
 
-base.addEventListener(
+
+joystick.addEventListener(
 "touchmove",
 (e)=>{
 
@@ -482,7 +477,7 @@ e.touches[0];
 
 
 const rect =
-base.getBoundingClientRect();
+joystick.getBoundingClientRect();
 
 
 
@@ -502,6 +497,7 @@ x=Math.max(
 -45,
 Math.min(45,x)
 );
+
 
 
 y=Math.max(
@@ -528,6 +524,7 @@ joystickY =
 y/45;
 
 
+
 },
 {
 passive:false
@@ -536,7 +533,8 @@ passive:false
 
 
 
-base.addEventListener(
+
+joystick.addEventListener(
 "touchend",
 ()=>{
 
@@ -546,23 +544,18 @@ joystickX=0;
 joystickY=0;
 
 
+
 stick.style.left="40px";
 
 stick.style.top="40px";
 
 
 });
-
-
-
-
-
 // =======================
 // КНОПКИ ВВЕРХ / ВНИЗ
 // =======================
 
-
-function createButton(text,bottom){
+function createButton(text, bottom){
 
 
 const btn =
@@ -573,7 +566,8 @@ btn.className =
 "mobileControl";
 
 
-btn.textContent=text;
+btn.textContent =
+text;
 
 
 
@@ -587,9 +581,10 @@ width:"75px",
 height:"75px",
 borderRadius:"50%",
 fontSize:"35px",
-zIndex:"9999",
+zIndex:"99999",
 userSelect:"none",
 webkitUserSelect:"none",
+webkitTouchCallout:"none",
 touchAction:"none"
 }
 );
@@ -605,7 +600,7 @@ return btn;
 
 
 
-const up =
+const upButton =
 createButton(
 "⬆️",
 "140px"
@@ -613,7 +608,7 @@ createButton(
 
 
 
-const down =
+const downButton =
 createButton(
 "⬇️",
 "50px"
@@ -622,52 +617,50 @@ createButton(
 
 
 
-up.addEventListener(
+
+upButton.addEventListener(
 "touchstart",
 (e)=>{
 
 e.stopPropagation();
 
-verticalMove=1;
+verticalMove = 1;
 
 });
 
 
 
-up.addEventListener(
+upButton.addEventListener(
 "touchend",
 ()=>{
 
-verticalMove=0;
+verticalMove = 0;
 
 });
 
 
 
 
-down.addEventListener(
+
+downButton.addEventListener(
 "touchstart",
 (e)=>{
 
 e.stopPropagation();
 
-verticalMove=-1;
+verticalMove = -1;
 
 });
 
 
 
-down.addEventListener(
+downButton.addEventListener(
 "touchend",
 ()=>{
 
-verticalMove=0;
+verticalMove = 0;
 
 });
-
-
-}
-
 
 
 
@@ -701,7 +694,6 @@ const right =
 new THREE.Vector3();
 
 
-
 right.crossVectors(
 forward,
 new THREE.Vector3(0,1,0)
@@ -709,6 +701,7 @@ new THREE.Vector3(0,1,0)
 
 
 right.normalize();
+
 
 
 
@@ -759,14 +752,18 @@ right.clone()
 
 
 
-if(keys[" "]){
+if(keys[" "] ){
+
 camera.position.y += speed;
+
 }
 
 
 
 if(keys["shift"]){
+
 camera.position.y -= speed;
+
 }
 
 
@@ -775,13 +772,10 @@ camera.position.y -= speed;
 
 // ТЕЛЕФОН
 
-if(isMobile){
-
-
 camera.position.add(
 forward.clone()
 .multiplyScalar(
--joystickY*speed
+-joystickY * speed
 )
 );
 
@@ -790,17 +784,14 @@ forward.clone()
 camera.position.add(
 right.clone()
 .multiplyScalar(
-joystickX*speed
+joystickX * speed
 )
 );
 
 
 
 camera.position.y +=
-verticalMove*speed;
-
-
-}
+verticalMove * speed;
 
 
 
@@ -812,10 +803,11 @@ verticalMove*speed;
 
 
 // =======================
-// ЗАПУСК
+// ИГРОВОЙ ЦИКЛ
 // =======================
 
 function animate(){
+
 
 requestAnimationFrame(
 animate
@@ -823,6 +815,7 @@ animate
 
 
 updateMovement();
+
 
 
 renderer.render(
@@ -853,7 +846,6 @@ window.addEventListener(
 camera.aspect =
 window.innerWidth /
 window.innerHeight;
-
 
 
 camera.updateProjectionMatrix();
