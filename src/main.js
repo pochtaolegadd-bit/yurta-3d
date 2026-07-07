@@ -620,7 +620,22 @@ if(isMobile){
 // ИГРОВОЙ ЦИКЛ
 // =======================
 
+// тут заканчивается часть 4 (свайп камеры)
+
+
+// СЮДА ВСТАВЛЯЕМ ДЖОЙСТИК + СТРЕЛКИ
+
+
+
 function animate(){
+
+    requestAnimationFrame(animate);
+
+    updateMovement();
+
+    renderer.render(scene, camera);
+
+}
 
     requestAnimationFrame(
         animate
