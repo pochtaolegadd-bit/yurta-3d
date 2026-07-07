@@ -22,7 +22,15 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-camera.position.set(0, 2, 5);
+
+// стартовая позиция
+// потом подгоним под дверь юрты
+
+camera.position.set(
+    0,
+    1.7,
+    5
+);
 
 
 // =======================
@@ -33,12 +41,16 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true
 });
 
+
 renderer.setSize(
     window.innerWidth,
     window.innerHeight
 );
 
-document.body.appendChild(renderer.domElement);
+
+document.body.appendChild(
+    renderer.domElement
+);
 
 
 // =======================
@@ -53,22 +65,23 @@ const ambientLight = new THREE.AmbientLight(
 scene.add(ambientLight);
 
 
-const directionalLight = new THREE.DirectionalLight(
+
+const sun = new THREE.DirectionalLight(
     0xffffff,
     2
 );
 
-directionalLight.position.set(
+sun.position.set(
     5,
     10,
     5
 );
 
-scene.add(directionalLight);
+scene.add(sun);
 
 
 // =======================
-// ЗАГРУЗКА ЮРТЫ
+// ЮРТА
 // =======================
 
 let yurta;
@@ -86,14 +99,32 @@ loader.load(
 
         scene.add(yurta);
 
+
+        // камера возле входа
+        camera.position.set(
+            0,
+            1.7,
+            5
+        );
+
+
+        camera.lookAt(
+            0,
+            1.5,
+            0
+        );
+
+
     },
 
+
     undefined,
+
 
     (error)=>{
 
         console.log(
-            "Ошибка загрузки юрты",
+            "Ошибка загрузки модели",
             error
         );
 
@@ -104,6 +135,7 @@ loader.load(
 // =======================
 
 const keys = {};
+
 
 document.addEventListener(
     "keydown",
@@ -125,17 +157,19 @@ document.addEventListener(
 );
 
 
+
 const moveSpeed = 0.1;
 
 
 // =======================
-// ПОВОРОТ КАМЕРЫ МЫШЬЮ
+// КАМЕРА МЫШЬЮ
 // =======================
 
 let mouseDown = false;
 
-let rotationX = 0;
-let rotationY = 0;
+let rotX = 0;
+let rotY = 0;
+
 
 
 document.addEventListener(
@@ -148,6 +182,7 @@ document.addEventListener(
 );
 
 
+
 document.addEventListener(
     "mouseup",
     ()=>{
@@ -158,6 +193,7 @@ document.addEventListener(
 );
 
 
+
 document.addEventListener(
     "mousemove",
     (event)=>{
@@ -165,76 +201,73 @@ document.addEventListener(
         if(!mouseDown) return;
 
 
-        rotationY -= event.movementX * 0.002;
+        rotY -= event.movementX * 0.002;
 
-        rotationX -= event.movementY * 0.002;
+        rotX -= event.movementY * 0.002;
 
 
-        rotationX = Math.max(
+        rotX = Math.max(
             -Math.PI / 2,
             Math.min(
                 Math.PI / 2,
-                rotationX
+                rotX
             )
         );
-
 
     }
 );
 
 
+
 // =======================
-// ДВИЖЕНИЕ
+// ДВИЖЕНИЕ ПК
 // =======================
 
-function updateMovement(){
-
-    const direction = new THREE.Vector3();
+function updatePCMovement(){
 
 
     camera.rotation.set(
-        rotationX,
-        rotationY,
+        rotX,
+        rotY,
         0
     );
 
 
     if(keys["KeyW"]){
 
-        direction.z -= 1;
+        camera.translateZ(
+            -moveSpeed
+        );
 
     }
+
 
     if(keys["KeyS"]){
 
-        direction.z += 1;
+        camera.translateZ(
+            moveSpeed
+        );
 
     }
+
 
     if(keys["KeyA"]){
 
-        direction.x -= 1;
+        camera.translateX(
+            -moveSpeed
+        );
 
     }
+
 
     if(keys["KeyD"]){
 
-        direction.x += 1;
+        camera.translateX(
+            moveSpeed
+        );
 
     }
 
-
-    direction.normalize();
-
-
-    camera.translateX(
-        direction.x * moveSpeed
-    );
-
-
-    camera.translateZ(
-        direction.z * moveSpeed
-    );
 
 }
 // =======================
@@ -242,128 +275,149 @@ function updateMovement(){
 // =======================
 
 const isMobile =
-    'ontouchstart' in window ||
+    "ontouchstart" in window ||
     navigator.maxTouchPoints > 0;
+
+
+let joystickX = 0;
+let joystickY = 0;
+
+let verticalMove = 0;
+
+
+
+if(isMobile){
 
 
 // =======================
 // ДЖОЙСТИК
 // =======================
 
-let joystickX = 0;
-let joystickY = 0;
+const joystickBase =
+document.createElement("div");
 
 
-if(isMobile){
+joystickBase.style.position = "fixed";
+joystickBase.style.left = "40px";
+joystickBase.style.bottom = "40px";
+joystickBase.style.width = "130px";
+joystickBase.style.height = "130px";
+joystickBase.style.borderRadius = "50%";
+joystickBase.style.background =
+"rgba(255,255,255,0.25)";
+joystickBase.style.zIndex = "9999";
 
 
-    const joystick = document.createElement("div");
-
-
-    joystick.style.position = "fixed";
-    joystick.style.left = "40px";
-    joystick.style.bottom = "40px";
-    joystick.style.width = "120px";
-    joystick.style.height = "120px";
-    joystick.style.borderRadius = "50%";
-    joystick.style.background = "rgba(255,255,255,0.3)";
-    joystick.style.zIndex = "9999";
-
-
-    document.body.appendChild(joystick);
+document.body.appendChild(
+    joystickBase
+);
 
 
 
-    const stick = document.createElement("div");
+const joystickStick =
+document.createElement("div");
 
 
-    stick.style.position = "absolute";
-    stick.style.left = "35px";
-    stick.style.top = "35px";
-    stick.style.width = "50px";
-    stick.style.height = "50px";
-    stick.style.borderRadius = "50%";
-    stick.style.background = "rgba(255,255,255,0.8)";
+joystickStick.style.position = "absolute";
+joystickStick.style.left = "40px";
+joystickStick.style.top = "40px";
+joystickStick.style.width = "50px";
+joystickStick.style.height = "50px";
+joystickStick.style.borderRadius = "50%";
+joystickStick.style.background =
+"rgba(255,255,255,0.8)";
 
 
-    joystick.appendChild(stick);
-
-
-
-    joystick.addEventListener(
-        "touchmove",
-        (event)=>{
-
-
-            const touch = event.touches[0];
-
-
-            const rect = joystick.getBoundingClientRect();
-
-
-            let x =
-            touch.clientX - 
-            (rect.left + 60);
-
-
-            let y =
-            touch.clientY -
-            (rect.top + 60);
+joystickBase.appendChild(
+    joystickStick
+);
 
 
 
-            const max = 40;
+
+joystickBase.addEventListener(
+"touchmove",
+(e)=>{
+
+    e.preventDefault();
 
 
-            x = Math.max(
-                -max,
-                Math.min(max,x)
-            );
+    const touch =
+    e.touches[0];
 
 
-            y = Math.max(
-                -max,
-                Math.min(max,y)
-            );
-
-
-
-            stick.style.left =
-            (35 + x) + "px";
-
-
-            stick.style.top =
-            (35 + y) + "px";
+    const rect =
+    joystickBase.getBoundingClientRect();
 
 
 
-            joystickX = x / max;
+    let x =
+    touch.clientX -
+    (rect.left + 65);
 
-            joystickY = y / max;
 
 
-        }
+    let y =
+    touch.clientY -
+    (rect.top + 65);
+
+
+
+    const max = 45;
+
+
+
+    x = Math.max(
+        -max,
+        Math.min(max,x)
+    );
+
+
+    y = Math.max(
+        -max,
+        Math.min(max,y)
     );
 
 
 
-    joystick.addEventListener(
-        "touchend",
-        ()=>{
+    joystickStick.style.left =
+    (40 + x) + "px";
 
 
-            joystickX = 0;
-
-            joystickY = 0;
-
-
-            stick.style.left = "35px";
-
-            stick.style.top = "35px";
+    joystickStick.style.top =
+    (40 + y) + "px";
 
 
-        }
-    );
+
+    joystickX = x / max;
+
+    joystickY = y / max;
+
+
+},
+{passive:false}
+);
+
+
+
+joystickBase.addEventListener(
+"touchend",
+()=>{
+
+    joystickX = 0;
+
+    joystickY = 0;
+
+
+    joystickStick.style.left =
+    "40px";
+
+
+    joystickStick.style.top =
+    "40px";
+
+}
+);
 
 
 
@@ -372,45 +426,42 @@ if(isMobile){
 // =======================
 
 
-let verticalMove = 0;
+function createArrow(text, bottom){
 
 
-
-function createButton(text,bottom){
-
-
-    const button =
-    document.createElement("button");
+const button =
+document.createElement("button");
 
 
-    button.innerHTML = text;
+button.innerHTML = text;
 
 
-    button.style.position = "fixed";
-    button.style.right = "40px";
-    button.style.bottom = bottom;
-    button.style.width = "70px";
-    button.style.height = "70px";
-    button.style.borderRadius = "50%";
-    button.style.fontSize = "30px";
-    button.style.zIndex = "9999";
+button.style.position = "fixed";
+button.style.right = "40px";
+button.style.bottom = bottom;
+button.style.width = "75px";
+button.style.height = "75px";
+button.style.borderRadius = "50%";
+button.style.fontSize = "35px";
+button.style.opacity = "0.7";
+button.style.zIndex = "9999";
 
 
-    document.body.appendChild(button);
+document.body.appendChild(button);
 
 
-    return button;
+return button;
 
 }
 
 
 
 const upButton =
-createButton("⬆️","140px");
+createArrow("⬆️","140px");
 
 
 const downButton =
-createButton("⬇️","50px");
+createArrow("⬇️","50px");
 
 
 
@@ -420,7 +471,8 @@ upButton.addEventListener(
 
     verticalMove = 1;
 
-});
+}
+);
 
 
 upButton.addEventListener(
@@ -429,7 +481,8 @@ upButton.addEventListener(
 
     verticalMove = 0;
 
-});
+}
+);
 
 
 
@@ -439,7 +492,8 @@ downButton.addEventListener(
 
     verticalMove = -1;
 
-});
+}
+);
 
 
 downButton.addEventListener(
@@ -448,7 +502,8 @@ downButton.addEventListener(
 
     verticalMove = 0;
 
-});
+}
+);
 
 
 }
@@ -468,6 +523,7 @@ function updateMobileMovement(){
     camera.translateZ(
         joystickY * moveSpeed
     );
+
 
 
     // движение влево / вправо
@@ -492,17 +548,21 @@ function updateMobileMovement(){
 
 
 
+
 // =======================
 // ИГРОВОЙ ЦИКЛ
 // =======================
 
 function animate(){
 
-    requestAnimationFrame(animate);
+
+    requestAnimationFrame(
+        animate
+    );
 
 
 
-    updateMovement();
+    updatePCMovement();
 
 
     updateMobileMovement();
@@ -514,15 +574,19 @@ function animate(){
         camera
     );
 
+
 }
+
 
 
 animate();
 
 
 
+
+
 // =======================
-// АДАПТАЦИЯ ЭКРАНА
+// РАЗМЕР ЭКРАНА
 // =======================
 
 window.addEventListener(
