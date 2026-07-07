@@ -12,6 +12,8 @@ scene.background =
 new THREE.Color(0xdcefff);
 
 
+
+
 // =======================
 // КАМЕРА
 // =======================
@@ -24,8 +26,6 @@ new THREE.PerspectiveCamera(
     1000
 );
 
-
-// старт
 
 camera.position.set(
     0,
@@ -57,6 +57,7 @@ document.body.style.margin="0";
 document.body.appendChild(
 renderer.domElement
 );
+
 
 
 
@@ -111,7 +112,7 @@ gltf.scene;
 
 
 
-// ставим модель в центр
+// убираем возможное смещение модели
 
 const box =
 new THREE.Box3()
@@ -150,14 +151,9 @@ undefined,
 
 (error)=>{
 
-console.error(
-error
-);
+console.error(error);
 
 });
-
-
-
 
 
 
@@ -167,7 +163,6 @@ error
 // =======================
 
 const keys = {};
-
 
 
 document.addEventListener(
@@ -190,12 +185,12 @@ keys[e.key.toLowerCase()] = false;
 
 
 
-
 // =======================
 // МЫШЬ
 // =======================
 
 let yaw = 0;
+
 let pitch = 0;
 
 
@@ -207,7 +202,6 @@ document.body.addEventListener(
 document.body.requestPointerLock();
 
 });
-
 
 
 
@@ -240,198 +234,20 @@ camera.rotation.order="YXZ";
 
 camera.rotation.y=yaw;
 
-
 camera.rotation.x=pitch;
 
 
 }
 
-
-});
-
-
-
-
-
-// =======================
-// СВОБОДНЫЙ ПОЛЁТ
-// =======================
-
-const speed = 0.15;
-
-
-
-function updateMovement(){
-
-
-const forward =
-new THREE.Vector3();
-
-
-camera.getWorldDirection(
-forward
-);
-
-
-
-const right =
-new THREE.Vector3();
-
-
-right.crossVectors(
-forward,
-new THREE.Vector3(0,1,0)
-);
-
-
-
-right.normalize();
-
-
-
-
-
-// вперёд
-
-if(keys["w"] || keys["ц"]){
-
-camera.position.add(
-forward.clone()
-.multiplyScalar(speed)
-);
-
-}
-
-
-
-// назад
-
-if(keys["s"] || keys["ы"]){
-
-camera.position.add(
-forward.clone()
-.multiplyScalar(-speed)
-);
-
-}
-
-
-
-// влево
-
-if(keys["a"] || keys["ф"]){
-
-camera.position.add(
-right.clone()
-.multiplyScalar(-speed)
-);
-
-}
-
-
-
-// вправо
-
-if(keys["d"] || keys["в"]){
-
-camera.position.add(
-right.clone()
-.multiplyScalar(speed)
-);
-
-}
-
-
-
-// вверх
-
-if(keys[" "] ){
-
-camera.position.y += speed;
-
-}
-
-
-
-// вниз
-
-if(keys["shift"]){
-
-camera.position.y -= speed;
-
-}
-
-
-}
-
-
-
-
-
-
-// =======================
-// ИГРОВОЙ ЦИКЛ
-// =======================
-
-function animate(){
-
-requestAnimationFrame(
-animate
-);
-
-
-
-updateMovement();
-
-
-
-renderer.render(
-scene,
-camera
-);
-
-
-}
-
-
-animate();
-
-
-
-
-
-
-// =======================
-// RESIZE
-// =======================
-
-window.addEventListener(
-"resize",
-()=>{
-
-
-camera.aspect =
-window.innerWidth /
-window.innerHeight;
-
-
-camera.updateProjectionMatrix();
-
-
-renderer.setSize(
-window.innerWidth,
-window.innerHeight
-);
-
-
 });
 // =======================
-// МОБИЛЬНОЕ УПРАВЛЕНИЕ
+// ТЕЛЕФОН
 // =======================
 
 const isMobile =
 'ontouchstart' in window ||
 navigator.maxTouchPoints > 0;
+
 
 
 let joystickX = 0;
@@ -440,11 +256,20 @@ let joystickY = 0;
 let verticalMove = 0;
 
 
+
 let cameraTouchId = null;
 
 let lastTouchX = 0;
 let lastTouchY = 0;
+
+
+
+// =======================
+// МОБИЛЬНОЕ УПРАВЛЕНИЕ
+// =======================
+
 if(isMobile){
+
 
 
 // =======================
@@ -471,6 +296,7 @@ continue;
 
 if(cameraTouchId === null){
 
+
 cameraTouchId =
 touch.identifier;
 
@@ -482,10 +308,10 @@ touch.clientX;
 lastTouchY =
 touch.clientY;
 
-}
 
 }
 
+}
 
 });
 
@@ -507,18 +333,19 @@ touch.identifier !== cameraTouchId
 continue;
 
 
-let dx =
-touch.clientX - lastTouchX;
+
+const dx =
+touch.clientX-lastTouchX;
 
 
-let dy =
-touch.clientY - lastTouchY;
+const dy =
+touch.clientY-lastTouchY;
 
 
 
-yaw -= dx * 0.005;
+yaw -= dx*0.005;
 
-pitch -= dy * 0.005;
+pitch -= dy*0.005;
 
 
 
@@ -547,15 +374,19 @@ touch.clientY;
 
 }
 
-
 });
+
+
+
 
 
 document.addEventListener(
 "touchend",
 (e)=>{
 
+
 for(const touch of e.changedTouches){
+
 
 if(
 touch.identifier === cameraTouchId
@@ -641,13 +472,13 @@ base.addEventListener(
 
 e.preventDefault();
 
-
 e.stopPropagation();
 
 
 
 const touch =
 e.touches[0];
+
 
 
 const rect =
@@ -658,6 +489,7 @@ base.getBoundingClientRect();
 let x =
 touch.clientX -
 (rect.left+65);
+
 
 
 let y =
@@ -703,16 +535,21 @@ passive:false
 
 
 
+
 base.addEventListener(
 "touchend",
 ()=>{
 
+
 joystickX=0;
+
 joystickY=0;
 
 
 stick.style.left="40px";
+
 stick.style.top="40px";
+
 
 });
 
@@ -721,27 +558,27 @@ stick.style.top="40px";
 
 
 // =======================
-// КНОПКИ ВВЕРХ ВНИЗ
+// КНОПКИ ВВЕРХ / ВНИЗ
 // =======================
 
 
-function button(text,bottom){
+function createButton(text,bottom){
 
 
-let b =
+const btn =
 document.createElement("button");
 
 
-b.className =
+btn.className =
 "mobileControl";
 
 
-b.innerHTML=text;
+btn.textContent=text;
 
 
 
 Object.assign(
-b.style,
+btn.style,
 {
 position:"fixed",
 right:"40px",
@@ -752,27 +589,36 @@ borderRadius:"50%",
 fontSize:"35px",
 zIndex:"9999",
 userSelect:"none",
+webkitUserSelect:"none",
 touchAction:"none"
 }
 );
 
 
 
-document.body.appendChild(b);
+document.body.appendChild(btn);
 
 
-return b;
+return btn;
 
 }
 
 
 
 const up =
-button("⬆️","140px");
+createButton(
+"⬆️",
+"140px"
+);
+
 
 
 const down =
-button("⬇️","50px");
+createButton(
+"⬇️",
+"50px"
+);
+
 
 
 
@@ -798,6 +644,7 @@ verticalMove=0;
 
 
 
+
 down.addEventListener(
 "touchstart",
 (e)=>{
@@ -820,3 +667,203 @@ verticalMove=0;
 
 
 }
+
+
+
+
+
+
+
+// =======================
+// СВОБОДНЫЙ ПОЛЁТ
+// =======================
+
+const speed = 0.15;
+
+
+
+function updateMovement(){
+
+
+
+const forward =
+new THREE.Vector3();
+
+
+
+camera.getWorldDirection(
+forward
+);
+
+
+
+const right =
+new THREE.Vector3();
+
+
+
+right.crossVectors(
+forward,
+new THREE.Vector3(0,1,0)
+);
+
+
+right.normalize();
+
+
+
+
+// ПК
+
+if(keys["w"] || keys["ц"]){
+
+camera.position.add(
+forward.clone()
+.multiplyScalar(speed)
+);
+
+}
+
+
+
+if(keys["s"] || keys["ы"]){
+
+camera.position.add(
+forward.clone()
+.multiplyScalar(-speed)
+);
+
+}
+
+
+
+if(keys["a"] || keys["ф"]){
+
+camera.position.add(
+right.clone()
+.multiplyScalar(-speed)
+);
+
+}
+
+
+
+if(keys["d"] || keys["в"]){
+
+camera.position.add(
+right.clone()
+.multiplyScalar(speed)
+);
+
+}
+
+
+
+if(keys[" "]){
+camera.position.y += speed;
+}
+
+
+
+if(keys["shift"]){
+camera.position.y -= speed;
+}
+
+
+
+
+
+// ТЕЛЕФОН
+
+if(isMobile){
+
+
+camera.position.add(
+forward.clone()
+.multiplyScalar(
+-joystickY*speed
+)
+);
+
+
+
+camera.position.add(
+right.clone()
+.multiplyScalar(
+joystickX*speed
+)
+);
+
+
+
+camera.position.y +=
+verticalMove*speed;
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+// =======================
+// ЗАПУСК
+// =======================
+
+function animate(){
+
+requestAnimationFrame(
+animate
+);
+
+
+updateMovement();
+
+
+renderer.render(
+scene,
+camera
+);
+
+
+}
+
+
+animate();
+
+
+
+
+
+
+// =======================
+// RESIZE
+// =======================
+
+window.addEventListener(
+"resize",
+()=>{
+
+
+camera.aspect =
+window.innerWidth /
+window.innerHeight;
+
+
+
+camera.updateProjectionMatrix();
+
+
+
+renderer.setSize(
+window.innerWidth,
+window.innerHeight
+);
+
+
+});
