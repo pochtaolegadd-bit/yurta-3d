@@ -8,14 +8,18 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const scene = new THREE.Scene();
 
-scene.background = new THREE.Color(0xdcefff);
+scene.background =
+new THREE.Color(0xdcefff);
+
+
 
 
 // =======================
 // КАМЕРА
 // =======================
 
-const camera = new THREE.PerspectiveCamera(
+const camera =
+new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
     0.1,
@@ -23,7 +27,7 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 
-// фиксированное место появления
+// камера перед центром
 
 camera.position.set(
     0,
@@ -38,7 +42,8 @@ camera.position.set(
 // РЕНДЕР
 // =======================
 
-const renderer = new THREE.WebGLRenderer({
+const renderer =
+new THREE.WebGLRenderer({
     antialias:true
 });
 
@@ -57,45 +62,48 @@ document.body.appendChild(
 
 
 
+
 // =======================
 // СВЕТ
 // =======================
 
-const ambientLight =
+const ambient =
 new THREE.AmbientLight(
     0xffffff,
     2
 );
 
-scene.add(ambientLight);
+scene.add(ambient);
 
 
 
-const dirLight =
+const light =
 new THREE.DirectionalLight(
     0xffffff,
     3
 );
 
 
-dirLight.position.set(
+light.position.set(
     5,
     10,
     5
 );
 
 
-scene.add(dirLight);
+scene.add(light);
+
 
 
 
 
 // =======================
-// ЮРТА
+// ЗАГРУЗКА ЮРТЫ
 // =======================
 
 const loader =
 new GLTFLoader();
+
 
 
 loader.load(
@@ -108,32 +116,47 @@ const yurta =
 gltf.scene;
 
 
-// фиксируем юрту
 
-yurta.position.set(
-    0,
-    0,
-    0
-);
-
-
-// если слишком большая/маленькая
-// меняй эти числа
-
-yurta.scale.set(
-    1,
-    1,
-    1
-);
-
-
+// добавляем
 
 scene.add(yurta);
 
 
 
+// находим настоящий центр модели
+
+const box =
+new THREE.Box3()
+.setFromObject(yurta);
+
+
+
+const center =
+box.getCenter(
+new THREE.Vector3()
+);
+
+
+
+// двигаем юрту в 0,0,0
+
+yurta.position.x -= center.x;
+
+yurta.position.y -= center.y;
+
+yurta.position.z -= center.z;
+
+
+
 console.log(
-"Юрта загружена"
+"Юрта поставлена в центр"
+);
+
+
+
+console.log(
+"Старый центр:",
+center
 );
 
 
@@ -142,9 +165,10 @@ console.log(
 
 camera.lookAt(
     0,
-    3,
+    0,
     0
 );
+
 
 
 },
@@ -156,10 +180,12 @@ undefined,
 (error)=>{
 
 console.error(
+"Ошибка:",
 error
 );
 
 });
+
 
 
 
@@ -180,6 +206,7 @@ renderer.render(
 scene,
 camera
 );
+
 
 }
 
