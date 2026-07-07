@@ -23,7 +23,7 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 
-// старт камеры возле юрты
+// точка появления возле юрты
 
 camera.position.set(
     0,
@@ -37,7 +37,8 @@ camera.position.set(
 // РЕНДЕР
 // =======================
 
-const renderer = new THREE.WebGLRenderer({
+const renderer =
+new THREE.WebGLRenderer({
     antialias:true
 });
 
@@ -48,7 +49,8 @@ renderer.setSize(
 );
 
 
-document.body.style.margin = "0";
+document.body.style.margin="0";
+
 
 document.body.appendChild(
     renderer.domElement
@@ -93,16 +95,16 @@ scene.add(
 
 
 
-
 // =======================
 // ЮРТА
 // =======================
 
-const loader = new GLTFLoader();
+const loader =
+new GLTFLoader();
+
 
 
 loader.load(
-
     "/yurta.glb",
 
     (gltf)=>{
@@ -124,92 +126,112 @@ loader.load(
 
     },
 
-
     undefined,
 
 
     (error)=>{
 
-
-        console.error(
-            error
-        );
-
+        console.error(error);
 
     }
 
 );
 // =======================
-// УПРАВЛЕНИЕ
+// УПРАВЛЕНИЕ КЛАВИАТУРОЙ
 // =======================
 
 const keys = {};
 
+
 document.addEventListener(
-    "keydown",
-    (e)=>{
-        keys[e.key.toLowerCase()] = true;
-    }
-);
+"keydown",
+(e)=>{
+
+    keys[e.key.toLowerCase()] = true;
+
+});
 
 
 document.addEventListener(
-    "keyup",
-    (e)=>{
-        keys[e.key.toLowerCase()] = false;
-    }
-);
+"keyup",
+(e)=>{
+
+    keys[e.key.toLowerCase()] = false;
+
+});
+
 
 
 
 // =======================
-// POINTER LOCK МЫШЬ ПК
+// POINTER LOCK (ПК)
 // =======================
 
 let yaw = 0;
 let pitch = 0;
 
 
+
 document.body.addEventListener(
-    "click",
-    ()=>{
-        document.body.requestPointerLock();
-    }
-);
+"click",
+()=>{
+
+    document.body.requestPointerLock();
+
+});
+
 
 
 
 document.addEventListener(
-    "mousemove",
-    (e)=>{
-
-        if(document.pointerLockElement === document.body){
-
-            yaw -= e.movementX * 0.002;
-            pitch -= e.movementY * 0.002;
+"mousemove",
+(e)=>{
 
 
-            pitch = Math.max(
-                -Math.PI / 2,
-                Math.min(Math.PI / 2,pitch)
-            );
+    if(
+        document.pointerLockElement === document.body
+    ){
 
 
-            camera.rotation.order = "YXZ";
+        yaw -= e.movementX * 0.002;
 
-            camera.rotation.y = yaw;
-            camera.rotation.x = pitch;
 
-        }
+        pitch -= e.movementY * 0.002;
+
+
+
+        pitch = Math.max(
+            -Math.PI / 2,
+            Math.min(
+                Math.PI / 2,
+                pitch
+            )
+        );
+
+
+
+        camera.rotation.order = "YXZ";
+
+
+        camera.rotation.y = yaw;
+
+
+        camera.rotation.x = pitch;
+
 
     }
-);
+
+
+});
+
 
 
 
 // =======================
 // ТЕЛЕФОН
+// ПОВОРОТ КАМЕРЫ СВАЙПОМ
 // =======================
+
 
 const isMobile =
 'ontouchstart' in window ||
@@ -221,26 +243,59 @@ let touchX = 0;
 let touchY = 0;
 
 
+let canRotateCamera = false;
 
-// поворот камеры пальцем
+
 
 if(isMobile){
+
 
 
 document.addEventListener(
 "touchstart",
 (e)=>{
 
-    touchX = e.touches[0].clientX;
-    touchY = e.touches[0].clientY;
+
+    // если нажали на управление
+    // камеру не крутим
+
+    if(
+        e.target.classList.contains("mobileControl")
+    ){
+
+        canRotateCamera = false;
+
+        return;
+
+    }
+
+
+
+    canRotateCamera = true;
+
+
+
+    touchX =
+    e.touches[0].clientX;
+
+
+    touchY =
+    e.touches[0].clientY;
+
 
 });
+
 
 
 
 document.addEventListener(
 "touchmove",
 (e)=>{
+
+
+    if(!canRotateCamera)
+    return;
+
 
 
     let dx =
@@ -252,39 +307,49 @@ document.addEventListener(
 
 
 
+
     yaw -= dx * 0.005;
+
 
     pitch -= dy * 0.005;
 
 
 
+
     pitch = Math.max(
         -Math.PI/2,
-        Math.min(Math.PI/2,pitch)
+        Math.min(
+            Math.PI/2,
+            pitch
+        )
     );
+
 
 
     camera.rotation.order="YXZ";
 
+
     camera.rotation.y=yaw;
+
 
     camera.rotation.x=pitch;
 
 
 
-    touchX=e.touches[0].clientX;
+    touchX =
+    e.touches[0].clientX;
 
-    touchY=e.touches[0].clientY;
+
+    touchY =
+    e.touches[0].clientY;
 
 
 });
 
+
 }
-
-
-
 // =======================
-// ДЖОЙСТИК
+// МОБИЛЬНОЕ УПРАВЛЕНИЕ
 // =======================
 
 let joystickX = 0;
@@ -297,42 +362,62 @@ let verticalMove = 0;
 if(isMobile){
 
 
-const base =
+// =======================
+// ДЖОЙСТИК
+// =======================
+
+
+const joystickBase =
 document.createElement("div");
 
 
-base.style.position="fixed";
-base.style.left="40px";
-base.style.bottom="40px";
-base.style.width="130px";
-base.style.height="130px";
-base.style.borderRadius="50%";
-base.style.background="rgba(255,255,255,0.25)";
-base.style.zIndex="9999";
+joystickBase.className =
+"mobileControl";
 
 
-document.body.appendChild(base);
+joystickBase.style.position="fixed";
+joystickBase.style.left="40px";
+joystickBase.style.bottom="40px";
+joystickBase.style.width="130px";
+joystickBase.style.height="130px";
+joystickBase.style.borderRadius="50%";
+joystickBase.style.background=
+"rgba(255,255,255,0.25)";
+joystickBase.style.zIndex="9999";
+joystickBase.style.touchAction="none";
+
+
+document.body.appendChild(
+joystickBase
+);
 
 
 
-const stick =
+const joystickStick =
 document.createElement("div");
 
 
-stick.style.position="absolute";
-stick.style.left="40px";
-stick.style.top="40px";
-stick.style.width="50px";
-stick.style.height="50px";
-stick.style.borderRadius="50%";
-stick.style.background="white";
+joystickStick.className =
+"mobileControl";
 
 
-base.appendChild(stick);
+joystickStick.style.position="absolute";
+joystickStick.style.left="40px";
+joystickStick.style.top="40px";
+joystickStick.style.width="50px";
+joystickStick.style.height="50px";
+joystickStick.style.borderRadius="50%";
+joystickStick.style.background="white";
+
+
+joystickBase.appendChild(
+joystickStick
+);
 
 
 
-base.addEventListener(
+
+joystickBase.addEventListener(
 "touchmove",
 (e)=>{
 
@@ -340,49 +425,69 @@ base.addEventListener(
 e.preventDefault();
 
 
-let touch=e.touches[0];
+let touch =
+e.touches[0];
 
-let rect=base.getBoundingClientRect();
+
+let rect =
+joystickBase.getBoundingClientRect();
+
 
 
 let x =
-touch.clientX-(rect.left+65);
+touch.clientX -
+(rect.left+65);
 
 
 let y =
-touch.clientY-(rect.top+65);
+touch.clientY -
+(rect.top+65);
 
 
 
 let max=45;
 
 
-x=Math.max(-max,Math.min(max,x));
-
-y=Math.max(-max,Math.min(max,y));
-
-
-
-stick.style.left =
-40+x+"px";
+x=Math.max(
+-max,
+Math.min(max,x)
+);
 
 
-stick.style.top =
-40+y+"px";
-
-
-joystickX=x/max;
-
-joystickY=y/max;
-
-
-},
-{passive:false}
+y=Math.max(
+-max,
+Math.min(max,y)
 );
 
 
 
-base.addEventListener(
+joystickStick.style.left =
+40+x+"px";
+
+
+joystickStick.style.top =
+40+y+"px";
+
+
+
+joystickX =
+x/max;
+
+
+joystickY =
+y/max;
+
+
+
+},
+{
+passive:false
+}
+);
+
+
+
+joystickBase.addEventListener(
 "touchend",
 ()=>{
 
@@ -392,9 +497,9 @@ joystickX=0;
 joystickY=0;
 
 
-stick.style.left="40px";
+joystickStick.style.left="40px";
 
-stick.style.top="40px";
+joystickStick.style.top="40px";
 
 
 });
@@ -402,15 +507,22 @@ stick.style.top="40px";
 
 
 
+
+
 // =======================
-// КНОПКИ ВВЕРХ ВНИЗ
+// КНОПКИ ВВЕРХ / ВНИЗ
 // =======================
 
 
 function createButton(text,bottom){
 
 
-let btn=document.createElement("button");
+const btn =
+document.createElement("button");
+
+
+btn.className =
+"mobileControl";
 
 
 btn.innerHTML=text;
@@ -426,7 +538,7 @@ btn.style.fontSize="35px";
 btn.style.zIndex="9999";
 
 
-// нельзя копировать
+// запрещаем копирование
 
 btn.style.userSelect="none";
 btn.style.webkitUserSelect="none";
@@ -438,38 +550,69 @@ document.body.appendChild(btn);
 
 return btn;
 
+
 }
 
 
 
-let up =
-createButton("⬆️","140px");
+const up =
+createButton(
+"⬆️",
+"140px"
+);
 
 
-let down =
-createButton("⬇️","50px");
+
+const down =
+createButton(
+"⬇️",
+"50px"
+);
 
 
 
-up.ontouchstart=()=>{
+
+up.addEventListener(
+"touchstart",
+()=>{
+
 verticalMove=1;
-};
+
+}
+);
 
 
-up.ontouchend=()=>{
+
+up.addEventListener(
+"touchend",
+()=>{
+
 verticalMove=0;
-};
+
+}
+);
 
 
 
-down.ontouchstart=()=>{
+down.addEventListener(
+"touchstart",
+()=>{
+
 verticalMove=-1;
-};
+
+}
+);
 
 
-down.ontouchend=()=>{
+
+down.addEventListener(
+"touchend",
+()=>{
+
 verticalMove=0;
-};
+
+}
+);
 
 
 
@@ -484,14 +627,20 @@ verticalMove=0;
 const speed = 0.08;
 
 
+
 function updateMovement(){
 
 
-let forward =
+
+const forward =
 new THREE.Vector3();
 
 
-camera.getWorldDirection(forward);
+
+camera.getWorldDirection(
+forward
+);
+
 
 forward.y=0;
 
@@ -499,7 +648,7 @@ forward.normalize();
 
 
 
-let right =
+const right =
 new THREE.Vector3();
 
 
@@ -508,72 +657,87 @@ forward,
 new THREE.Vector3(0,1,0)
 );
 
+
 right.normalize();
+
 
 
 
 // ПК
 
-if(keys["w"]||keys["ц"])
+
+if(keys["w"] || keys["ц"])
 camera.position.add(
-forward.clone().multiplyScalar(speed)
-);
-
-
-if(keys["s"]||keys["ы"])
-camera.position.add(
-forward.clone().multiplyScalar(-speed)
-);
-
-
-if(keys["a"]||keys["ф"])
-camera.position.add(
-right.clone().multiplyScalar(-speed)
-);
-
-
-if(keys["d"]||keys["в"])
-camera.position.add(
-right.clone().multiplyScalar(speed)
+forward.clone()
+.multiplyScalar(speed)
 );
 
 
 
-// вверх вниз
+if(keys["s"] || keys["ы"])
+camera.position.add(
+forward.clone()
+.multiplyScalar(-speed)
+);
+
+
+
+if(keys["a"] || keys["ф"])
+camera.position.add(
+right.clone()
+.multiplyScalar(-speed)
+);
+
+
+
+if(keys["d"] || keys["в"])
+camera.position.add(
+right.clone()
+.multiplyScalar(speed)
+);
+
+
 
 if(keys[" "])
-camera.position.y+=speed;
+camera.position.y += speed;
+
 
 
 if(keys["shift"])
-camera.position.y-=speed;
+camera.position.y -= speed;
 
 
 
-// телефон джойстик
+
+// ТЕЛЕФОН
+
 
 if(isMobile){
 
 
 camera.position.add(
 forward.clone()
-.multiplyScalar(-joystickY*speed)
+.multiplyScalar(
+-joystickY * speed
+)
 );
+
 
 
 camera.position.add(
 right.clone()
-.multiplyScalar(joystickX*speed)
+.multiplyScalar(
+joystickX * speed
+)
 );
 
 
 
 camera.position.y +=
-verticalMove*speed;
+verticalMove * speed;
 
 
 }
-
 
 
 }
@@ -585,14 +749,18 @@ verticalMove*speed;
 // ЗАПУСК
 // =======================
 
+
 function animate(){
+
 
 requestAnimationFrame(
 animate
 );
 
 
+
 updateMovement();
+
 
 
 renderer.render(
@@ -604,7 +772,9 @@ camera
 }
 
 
+
 animate();
+
 
 
 
@@ -618,10 +788,12 @@ window.addEventListener(
 
 
 camera.aspect =
-window.innerWidth/window.innerHeight;
+window.innerWidth /
+window.innerHeight;
 
 
 camera.updateProjectionMatrix();
+
 
 
 renderer.setSize(
