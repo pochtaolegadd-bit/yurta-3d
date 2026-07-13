@@ -27,7 +27,6 @@ new THREE.PerspectiveCamera(
 );
 
 
-
 camera.position.set(
     0,
     5,
@@ -48,22 +47,21 @@ new THREE.WebGLRenderer({
 
 
 renderer.setPixelRatio(
-    window.devicePixelRatio
+window.devicePixelRatio
 );
 
 
 renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
+window.innerWidth,
+window.innerHeight
 );
-
 
 
 document.body.style.margin = "0";
 
 
 document.body.appendChild(
-    renderer.domElement
+renderer.domElement
 );
 
 
@@ -78,7 +76,6 @@ new THREE.AmbientLight(
     0xffffff,
     2
 ));
-
 
 
 const light =
@@ -147,6 +144,7 @@ new THREE.Vector3();
 
 let spawnRotation =
 new THREE.Euler();
+
 // =======================
 // ЗАГРУЗКА ЮРТЫ
 // =======================
@@ -168,10 +166,11 @@ gltf.scene;
 
 
 
+// =======================
+// ИСПРАВЛЯЕМ НАКЛОН GLB
+// =======================
 
-// =======================
-// ИСПРАВЛЕНИЕ НАКЛОНА
-// =======================
+// сбрасываем поворот корня модели
 
 yurta.rotation.set(
     0,
@@ -181,10 +180,33 @@ yurta.rotation.set(
 
 
 
+// исправляем возможные наклоны частей модели
+
+yurta.traverse(
+(object)=>{
+
+
+if(object.isMesh){
+
+
+object.rotation.x = 0;
+
+object.rotation.z = 0;
+
+
+}
+
+
+});
+
+
+
+
+
 
 
 // =======================
-// ЦЕНТРИРОВКА
+// ЦЕНТРИРОВКА ЮРТЫ
 // =======================
 
 const box =
@@ -213,24 +235,25 @@ scene.add(yurta);
 
 
 
+console.log(
+"Юрта загружена"
+);
+
+
+
+
+
+
 
 
 // =======================
-// СПАВН ОЧЕНЬ БЛИЗКО
-// К БОКОВОМУ ВХОДУ
+// СПАВН БЛИЖЕ К ЮРТЕ
 // =======================
 
 
 const yurtaBox =
 new THREE.Box3()
 .setFromObject(yurta);
-
-
-
-const size =
-yurtaBox.getSize(
-new THREE.Vector3()
-);
 
 
 
@@ -245,11 +268,11 @@ new THREE.Vector3()
 
 camera.position.set(
 
-    yurtaCenter.x + size.x / 2 + 0.3,
+    yurtaCenter.x + 1.5,
 
     yurtaCenter.y + 2,
 
-    yurtaCenter.z + size.z / 6
+    yurtaCenter.z + 1
 
 );
 
@@ -257,6 +280,7 @@ camera.position.set(
 
 
 
+// смотрим внутрь
 
 camera.lookAt(
 new THREE.Vector3(
@@ -265,6 +289,7 @@ new THREE.Vector3(
     yurtaCenter.z
 )
 );
+
 
 
 
@@ -281,6 +306,10 @@ camera.rotation.x;
 
 
 
+
+
+// сохраняем спавн
+
 spawnPosition.copy(
 camera.position
 );
@@ -293,21 +322,20 @@ camera.rotation
 
 
 
-
-console.log(
-"Спавн установлен возле входа"
-);
-
-
-
 },
+
 
 undefined,
 
 
 (error)=>{
 
-console.error(error);
+
+console.error(
+"Ошибка загрузки юрты:",
+error
+);
+
 
 }
 
@@ -361,7 +389,7 @@ renderer.domElement.requestPointerLock();
 
 
 // =======================
-// КАМЕРА МЫШЬЮ
+// ПОВОРОТ КАМЕРЫ МЫШЬЮ
 // =======================
 
 const mouseSensitivity = 0.002;
@@ -391,6 +419,7 @@ e.movementY * mouseSensitivity;
 
 
 
+
 pitch =
 Math.max(
 -Math.PI / 2,
@@ -399,6 +428,7 @@ Math.PI / 2,
 pitch
 )
 );
+
 
 
 
@@ -487,7 +517,6 @@ if(isMobile){
 // КАМЕРА ПАЛЬЦЕМ
 // =======================
 
-
 document.addEventListener(
 "touchstart",
 (e)=>{
@@ -542,6 +571,7 @@ touch.clientY;
 
 
 
+
 document.addEventListener(
 "touchmove",
 (e)=>{
@@ -578,6 +608,7 @@ dy * 0.005;
 
 
 
+
 pitch =
 Math.max(
 -Math.PI/2,
@@ -591,6 +622,7 @@ pitch
 
 camera.rotation.order =
 "YXZ";
+
 
 
 camera.rotation.y =
@@ -648,6 +680,8 @@ cameraTouchId = null;
 
 
 
+
+
 // =======================
 // ДЖОЙСТИК
 // =======================
@@ -656,8 +690,10 @@ const joystick =
 document.createElement("div");
 
 
+
 joystick.className =
 "mobileControl";
+
 
 
 Object.assign(
@@ -685,12 +721,15 @@ joystick
 
 
 
+
 const stick =
 document.createElement("div");
 
 
+
 stick.className =
 "mobileControl";
+
 
 
 Object.assign(
@@ -741,13 +780,13 @@ joystick.getBoundingClientRect();
 
 let x =
 touch.clientX -
-(rect.left+65);
+(rect.left + 65);
 
 
 
 let y =
 touch.clientY -
-(rect.top+65);
+(rect.top + 65);
 
 
 
@@ -958,7 +997,6 @@ forward
 
 forward.y = 0;
 
-
 forward.normalize();
 
 
@@ -1047,6 +1085,7 @@ camera.position.y -= speed;
 
 
 }
+
 
 
 
@@ -1176,6 +1215,7 @@ animate();
 
 
 
+
 // =======================
 // RESIZE
 // =======================
@@ -1209,8 +1249,9 @@ window.innerHeight
 
 
 
+
 // =======================
-// СТРАНИЦА
+// НАСТРОЙКИ СТРАНИЦЫ
 // =======================
 
 document.body.style.margin =
