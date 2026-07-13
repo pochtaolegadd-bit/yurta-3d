@@ -36,6 +36,7 @@ camera.position.set(
 
 
 
+
 // =======================
 // РЕНДЕР
 // =======================
@@ -57,12 +58,15 @@ window.innerHeight
 );
 
 
+
 document.body.style.margin = "0";
 
 
 document.body.appendChild(
 renderer.domElement
 );
+
+
 
 
 
@@ -78,6 +82,7 @@ new THREE.AmbientLight(
 ));
 
 
+
 const light =
 new THREE.DirectionalLight(
     0xffffff,
@@ -86,13 +91,14 @@ new THREE.DirectionalLight(
 
 
 light.position.set(
-    5,
-    10,
-    5
+5,
+10,
+5
 );
 
 
 scene.add(light);
+
 
 
 
@@ -166,11 +172,11 @@ gltf.scene;
 
 
 
-// =======================
-// ИСПРАВЛЯЕМ НАКЛОН GLB
-// =======================
 
-// сбрасываем поворот корня модели
+
+// =======================
+// ИСПРАВЛЕНИЕ НАКЛОНА
+// =======================
 
 yurta.rotation.set(
     0,
@@ -180,7 +186,7 @@ yurta.rotation.set(
 
 
 
-// исправляем возможные наклоны частей модели
+// убираем наклоны частей модели
 
 yurta.traverse(
 (object)=>{
@@ -205,8 +211,9 @@ object.rotation.z = 0;
 
 
 
+
 // =======================
-// ЦЕНТРИРОВКА ЮРТЫ
+// ЦЕНТРИРОВКА
 // =======================
 
 const box =
@@ -222,15 +229,12 @@ new THREE.Vector3()
 
 
 
-yurta.position.x -= center.x;
-
-yurta.position.y -= center.y;
-
-yurta.position.z -= center.z;
+yurta.position.sub(center);
 
 
 
 scene.add(yurta);
+
 
 
 
@@ -245,9 +249,8 @@ console.log(
 
 
 
-
 // =======================
-// СПАВН БЛИЖЕ К ЮРТЕ
+// СПАВН В 2 РАЗА БЛИЖЕ
 // =======================
 
 
@@ -266,13 +269,14 @@ new THREE.Vector3()
 
 
 
+
 camera.position.set(
 
-    yurtaCenter.x + 1.5,
+    yurtaCenter.x + 0.7,
 
     yurtaCenter.y + 2,
 
-    yurtaCenter.z + 1
+    yurtaCenter.z + 0.5
 
 );
 
@@ -280,13 +284,18 @@ camera.position.set(
 
 
 
-// смотрим внутрь
+
+
 
 camera.lookAt(
 new THREE.Vector3(
+
     yurtaCenter.x,
+
     yurtaCenter.y + 1,
+
     yurtaCenter.z
+
 )
 );
 
@@ -308,8 +317,6 @@ camera.rotation.x;
 
 
 
-// сохраняем спавн
-
 spawnPosition.copy(
 camera.position
 );
@@ -322,6 +329,8 @@ camera.rotation
 
 
 
+
+
 },
 
 
@@ -330,19 +339,16 @@ undefined,
 
 (error)=>{
 
-
 console.error(
-"Ошибка загрузки юрты:",
 error
 );
-
 
 }
 
 );
 
 // =======================
-// ПК КЛАВИАТУРА
+// КЛАВИАТУРА ПК
 // =======================
 
 document.addEventListener(
@@ -362,6 +368,7 @@ document.addEventListener(
 keys[e.code] = false;
 
 });
+
 
 
 
@@ -389,8 +396,9 @@ renderer.domElement.requestPointerLock();
 
 
 // =======================
-// ПОВОРОТ КАМЕРЫ МЫШЬЮ
+// МЫШЬ FPS
 // =======================
+
 
 const mouseSensitivity = 0.002;
 
@@ -405,6 +413,17 @@ if(
 document.pointerLockElement !== renderer.domElement
 )
 return;
+
+
+
+// защита от первого рывка
+
+if(
+e.movementX === 0 &&
+e.movementY === 0
+)
+return;
+
 
 
 
@@ -457,7 +476,7 @@ pitch;
 
 
 // =======================
-// R - ВЕРНУТЬСЯ НА СПАВН
+// R - ВОЗВРАТ НА СПАВН
 // =======================
 
 document.addEventListener(
@@ -504,6 +523,7 @@ camera.rotation.x;
 const isMobile =
 ('ontouchstart' in window) ||
 (navigator.maxTouchPoints > 0);
+
 
 
 
@@ -609,6 +629,7 @@ dy * 0.005;
 
 
 
+
 pitch =
 Math.max(
 -Math.PI/2,
@@ -617,6 +638,8 @@ Math.PI/2,
 pitch
 )
 );
+
+
 
 
 
@@ -652,6 +675,7 @@ touch.clientY;
 
 
 
+
 document.addEventListener(
 "touchend",
 (e)=>{
@@ -673,7 +697,6 @@ cameraTouchId = null;
 
 
 });
-
 
 
 
@@ -716,6 +739,7 @@ touchAction:"none"
 document.body.appendChild(
 joystick
 );
+
 
 
 
@@ -790,6 +814,7 @@ touch.clientY -
 
 
 
+
 x =
 Math.max(
 -45,
@@ -841,6 +866,7 @@ passive:false
 
 
 
+
 joystick.addEventListener(
 "touchend",
 ()=>{
@@ -868,20 +894,25 @@ stick.style.top =
 
 
 
+
 // =======================
 // КНОПКИ ВВЕРХ / ВНИЗ
 // =======================
 
-
-function createButton(text,bottom){
+function createButton(
+text,
+bottom
+){
 
 
 const btn =
 document.createElement("button");
 
 
+
 btn.className =
 "mobileControl";
+
 
 
 btn.textContent =
@@ -906,7 +937,9 @@ touchAction:"none"
 
 
 
-document.body.appendChild(btn);
+document.body.appendChild(
+btn
+);
 
 
 
@@ -1093,7 +1126,6 @@ camera.position.y -= speed;
 
 
 
-
 // =======================
 // ДВИЖЕНИЕ ТЕЛЕФОНА
 // =======================
@@ -1118,7 +1150,6 @@ forward
 
 
 forward.y = 0;
-
 
 forward.normalize();
 
@@ -1208,7 +1239,6 @@ camera
 
 
 animate();
-
 
 
 
