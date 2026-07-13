@@ -138,12 +138,11 @@ document.addEventListener("keydown", (e) => {
 
         console.log("========== КАМЕРА ==========");
 
-        console.log(
-            "Позиция:",
-            `x: ${camera.position.x}`,
-            `y: ${camera.position.y}`,
-            `z: ${camera.position.z}`
-        );
+        camera.position.set(
+            18.759733925127577,
+            -1.5000148620521192,
+            10.62070175717956
+            );
 
         console.log(
             "Поворот:",
@@ -160,8 +159,12 @@ document.addEventListener("keydown", (e) => {
 // ПОВОРОТ КАМЕРЫ МЫШЬЮ
 // =======================
 
-let yaw = 0;
-let pitch = 0;
+let yaw = 1.0199999999999967;
+let pitch = -0.03679632679489596;
+
+camera.rotation.order = "YXZ";
+camera.rotation.y = yaw;
+camera.rotation.x = pitch;
 
 renderer.domElement.addEventListener("click", () => {
 
