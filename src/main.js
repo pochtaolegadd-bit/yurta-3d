@@ -13,6 +13,7 @@ new THREE.Color(0xdcefff);
 
 
 
+
 // =======================
 // КАМЕРА
 // =======================
@@ -26,14 +27,12 @@ new THREE.PerspectiveCamera(
 );
 
 
-// СПАВН ИГРОКА
-
+// временный спавн
 camera.position.set(
-    0.02129659801721573,
-    6,
+    0,
+    3,
     8
 );
-
 
 
 
@@ -48,23 +47,25 @@ new THREE.WebGLRenderer({
 });
 
 
+renderer.setPixelRatio(
+    window.devicePixelRatio
+);
+
+
 renderer.setSize(
     window.innerWidth,
     window.innerHeight
 );
 
 
-renderer.setPixelRatio(
-    window.devicePixelRatio
-);
 
-
-document.body.style.margin = "0";
+document.body.style.margin="0";
 
 
 document.body.appendChild(
     renderer.domElement
 );
+
 
 
 
@@ -80,32 +81,50 @@ new THREE.AmbientLight(
 ));
 
 
-const light =
+
+const sun =
 new THREE.DirectionalLight(
     0xffffff,
     3
 );
 
 
-light.position.set(
+sun.position.set(
     5,
     10,
     5
 );
 
 
-scene.add(light);
+scene.add(sun);
 
 
 
 
 
 // =======================
-// ЮРТА
+// ПЕРЕМЕННЫЕ
 // =======================
 
 let yurta = null;
 
+
+
+let yaw = 0;
+
+let pitch = 0;
+
+
+
+const keys = {};
+
+
+
+const speed = 0.15;
+
+// =======================
+// ЗАГРУЗКА ЮРТЫ
+// =======================
 
 const loader =
 new GLTFLoader();
@@ -113,7 +132,6 @@ new GLTFLoader();
 
 
 loader.load(
-
 "/yurta.glb",
 
 
@@ -125,8 +143,9 @@ gltf.scene;
 
 
 
-
-// центрируем модель
+// =======================
+// ЦЕНТРИРОВАНИЕ ЮРТЫ
+// =======================
 
 const box =
 new THREE.Box3()
@@ -142,14 +161,15 @@ new THREE.Vector3()
 
 
 yurta.position.x -= center.x;
+
 yurta.position.y -= center.y;
+
 yurta.position.z -= center.z;
 
 
 
-
 scene.add(
-    yurta
+yurta
 );
 
 
@@ -160,10 +180,42 @@ console.log(
 
 
 
-// камера смотрит на юрту
+
+
+// =======================
+// СПАВН ИГРОКА
+// =======================
+
+
+const yurtaBox =
+new THREE.Box3()
+.setFromObject(yurta);
+
+
+
+const spawn =
+yurtaBox.getCenter(
+new THREE.Vector3()
+);
+
+
+
+
+// перед юртой
+
+camera.position.set(
+    spawn.x,
+    spawn.y + 3,
+    spawn.z + 8
+);
+
+
+
+
+// смотрим на юрту
 
 camera.lookAt(
-    yurta.position
+    spawn
 );
 
 
@@ -186,7 +238,7 @@ undefined,
 (error)=>{
 
 console.error(
-"Ошибка загрузки:",
+"Ошибка загрузки юрты:",
 error
 );
 
@@ -194,103 +246,56 @@ error
 
 );
 
-
-
-
-
 // =======================
-// КАМЕРА ПЕРЕМЕННЫЕ
+// КЛАВИАТУРА
 // =======================
-
-let yaw = 0;
-
-let pitch = 0;
-
-// =======================
-// КЛАВИАТУРА ПК
-// =======================
-
-const keys = {};
-
-
 
 document.addEventListener(
 "keydown",
 (e)=>{
 
-keys[e.key.toLowerCase()] = true;
-
+keys[e.code] = true;
 
 });
-
 
 
 document.addEventListener(
 "keyup",
 (e)=>{
 
-keys[e.key.toLowerCase()] = false;
-
-
-});
-
-
-
-
-
-// =======================
-// ПРОВЕРКА ПОЗИЦИИ (P)
-// =======================
-
-document.addEventListener(
-"keydown",
-(e)=>{
-
-
-if(
-e.key.toLowerCase() === "p"
-){
-
-console.log(
-"Позиция:",
-camera.position
-);
-
-
-console.log(
-"Поворот:",
-camera.rotation
-);
-
-
-}
-
+keys[e.code] = false;
 
 });
 
 
 
 
-
-
-
 // =======================
-// МЫШЬ ПК
+// POINTER LOCK (КАК В ИГРАХ)
 // =======================
 
 
-document.body.addEventListener(
+renderer.domElement.addEventListener(
 "click",
 ()=>{
 
 
-document.body.requestPointerLock();
+renderer.domElement.requestPointerLock();
 
 
 });
 
 
 
+
+
+
+// =======================
+// ВРАЩЕНИЕ КАМЕРЫ МЫШЬЮ
+// =======================
+
+
+const sensitivity = 0.0025;
 
 
 
@@ -300,26 +305,29 @@ document.addEventListener(
 
 
 if(
-document.pointerLockElement === document.body
-){
+document.pointerLockElement !== renderer.domElement
+)
+return;
+
+
 
 
 yaw -=
-e.movementX * 0.002;
+e.movementX * sensitivity;
 
 
 
 pitch -=
-e.movementY * 0.002;
+e.movementY * sensitivity;
 
 
 
 
 pitch =
 Math.max(
--Math.PI/2,
+-Math.PI / 2,
 Math.min(
-Math.PI/2,
+Math.PI / 2,
 pitch
 )
 );
@@ -336,37 +344,243 @@ camera.rotation.y =
 yaw;
 
 
-
 camera.rotation.x =
 pitch;
 
 
 
+});
+
+// =======================
+// СОХРАНЕНИЕ СПАВНА
+// =======================
+
+let spawnPosition =
+new THREE.Vector3();
+
+
+
+let spawnRotation =
+new THREE.Euler();
+
+
+
+
+
+// функция установки спавна
+
+function setSpawn(){
+
+spawnPosition.copy(
+    camera.position
+);
+
+
+spawnRotation.copy(
+    camera.rotation
+);
+
 }
 
 
+
+
+
+// =======================
+// R - ВЕРНУТЬСЯ НА СПАВН
+// =======================
+
+document.addEventListener(
+"keydown",
+(e)=>{
+
+
+if(
+e.code === "KeyR"
+){
+
+
+camera.position.copy(
+    spawnPosition
+);
+
+
+camera.rotation.copy(
+    spawnRotation
+);
+
+
+yaw =
+camera.rotation.y;
+
+
+pitch =
+camera.rotation.x;
+
+
+}
+
+
+
 });
+
+
+
+
+
+
+// =======================
+// ДВИЖЕНИЕ ПК
+// =======================
+
+function movePC(){
+
+
+
+const forward =
+new THREE.Vector3();
+
+
+
+camera.getWorldDirection(
+forward
+);
+
+
+
+forward.y = 0;
+
+
+forward.normalize();
+
+
+
+
+
+
+const right =
+new THREE.Vector3();
+
+
+
+right.crossVectors(
+forward,
+camera.up
+);
+
+
+right.normalize();
+
+
+
+
+
+// вперед
+
+if(keys["KeyW"]){
+
+
+camera.position.add(
+forward.clone()
+.multiplyScalar(speed)
+);
+
+
+}
+
+
+
+
+// назад
+
+if(keys["KeyS"]){
+
+
+camera.position.add(
+forward.clone()
+.multiplyScalar(-speed)
+);
+
+
+}
+
+
+
+
+// влево
+
+if(keys["KeyA"]){
+
+
+camera.position.add(
+right.clone()
+.multiplyScalar(-speed)
+);
+
+
+}
+
+
+
+
+// вправо
+
+if(keys["KeyD"]){
+
+
+camera.position.add(
+right.clone()
+.multiplyScalar(speed)
+);
+
+
+}
+
+
+
+
+
+// вверх
+
+if(keys["Space"]){
+
+
+camera.position.y += speed;
+
+
+}
+
+
+
+
+// вниз
+
+if(keys["ShiftLeft"]){
+
+
+camera.position.y -= speed;
+
+
+}
+
+
+
+}
 
 // =======================
 // МОБИЛЬНОЕ УПРАВЛЕНИЕ
 // =======================
 
-const isMobile = true;
-
-
 let joystickX = 0;
 let joystickY = 0;
 
-
 let verticalMove = 0;
-
 
 
 let cameraTouchId = null;
 
 let lastTouchX = 0;
 let lastTouchY = 0;
-
 
 
 
@@ -382,7 +596,6 @@ document.addEventListener(
 
 
 for(const touch of e.changedTouches){
-
 
 
 const target =
@@ -424,11 +637,7 @@ touch.clientY;
 }
 
 
-},
-{
-passive:false
 });
-
 
 
 
@@ -451,23 +660,17 @@ continue;
 
 
 const dx =
-touch.clientX -
-lastTouchX;
+touch.clientX-lastTouchX;
 
 
 const dy =
-touch.clientY -
-lastTouchY;
+touch.clientY-lastTouchY;
 
 
 
-yaw -=
-dx * 0.005;
+yaw -= dx * 0.005;
 
-
-
-pitch -=
-dy * 0.005;
+pitch -= dy * 0.005;
 
 
 
@@ -503,12 +706,10 @@ lastTouchY =
 touch.clientY;
 
 
-
 }
 
 
 });
-
 
 
 
@@ -531,9 +732,7 @@ cameraTouchId = null;
 
 }
 
-
 }
-
 
 
 });
@@ -550,9 +749,7 @@ cameraTouchId = null;
 
 
 const joystick =
-document.createElement(
-"div"
-);
+document.createElement("div");
 
 
 joystick.className =
@@ -563,26 +760,15 @@ joystick.className =
 Object.assign(
 joystick.style,
 {
-
 position:"fixed",
-
 left:"40px",
-
 bottom:"40px",
-
 width:"130px",
-
 height:"130px",
-
 borderRadius:"50%",
-
-background:
-"rgba(255,255,255,0.3)",
-
+background:"rgba(255,255,255,0.3)",
 zIndex:"99999",
-
 touchAction:"none"
-
 }
 );
 
@@ -597,9 +783,7 @@ joystick
 
 
 const stick =
-document.createElement(
-"div"
-);
+document.createElement("div");
 
 
 stick.className =
@@ -610,21 +794,13 @@ stick.className =
 Object.assign(
 stick.style,
 {
-
 position:"absolute",
-
 left:"40px",
-
 top:"40px",
-
 width:"50px",
-
 height:"50px",
-
 borderRadius:"50%",
-
 background:"white"
-
 }
 );
 
@@ -674,10 +850,7 @@ touch.clientY -
 x =
 Math.max(
 -45,
-Math.min(
-45,
-x
-)
+Math.min(45,x)
 );
 
 
@@ -685,10 +858,7 @@ x
 y =
 Math.max(
 -45,
-Math.min(
-45,
-y
-)
+Math.min(45,y)
 );
 
 
@@ -710,12 +880,10 @@ joystickY =
 y/45;
 
 
-
 },
 {
 passive:false
 });
-
 
 
 
@@ -726,9 +894,9 @@ joystick.addEventListener(
 ()=>{
 
 
-joystickX=0;
+joystickX = 0;
 
-joystickY=0;
+joystickY = 0;
 
 
 stick.style.left =
@@ -740,6 +908,7 @@ stick.style.top =
 
 
 });
+
 
 
 
@@ -758,9 +927,7 @@ bottom
 
 
 const btn =
-document.createElement(
-"button"
-);
+document.createElement("button");
 
 
 btn.className =
@@ -775,25 +942,15 @@ text;
 Object.assign(
 btn.style,
 {
-
 position:"fixed",
-
 right:"40px",
-
 bottom:bottom,
-
 width:"75px",
-
 height:"75px",
-
 borderRadius:"50%",
-
 fontSize:"35px",
-
 zIndex:"99999",
-
 touchAction:"none"
-
 }
 );
 
@@ -869,26 +1026,14 @@ verticalMove = 0;
 };
 
 // =======================
-// СКОРОСТЬ
+// ДВИЖЕНИЕ ТЕЛЕФОНА
 // =======================
 
-const speed = 0.15;
-
-
-
-
-
-// =======================
-// ДВИЖЕНИЕ ИГРОКА
-// =======================
-
-function updateMovement(){
-
+function moveMobile(){
 
 
 const forward =
 new THREE.Vector3();
-
 
 
 camera.getWorldDirection(
@@ -896,17 +1041,22 @@ forward
 );
 
 
+forward.y = 0;
+
+
+forward.normalize();
+
+
+
 
 const right =
 new THREE.Vector3();
 
 
-
 right.crossVectors(
 forward,
-new THREE.Vector3(0,1,0)
+camera.up
 );
-
 
 
 right.normalize();
@@ -915,102 +1065,7 @@ right.normalize();
 
 
 
-// =======================
-// ПК
-// =======================
-
-
-if(
-keys["w"] ||
-keys["ц"]
-){
-
-camera.position.add(
-forward.clone()
-.multiplyScalar(speed)
-);
-
-}
-
-
-
-if(
-keys["s"] ||
-keys["ы"]
-){
-
-camera.position.add(
-forward.clone()
-.multiplyScalar(-speed)
-);
-
-}
-
-
-
-if(
-keys["a"] ||
-keys["ф"]
-){
-
-camera.position.add(
-right.clone()
-.multiplyScalar(-speed)
-);
-
-}
-
-
-
-if(
-keys["d"] ||
-keys["в"]
-){
-
-camera.position.add(
-right.clone()
-.multiplyScalar(speed)
-);
-
-}
-
-
-
-
-// вверх
-
-if(
-keys[" "]
-){
-
-camera.position.y += speed;
-
-}
-
-
-
-
-// вниз
-
-if(
-keys["shift"]
-){
-
-camera.position.y -= speed;
-
-}
-
-
-
-
-
-
-
-// =======================
-// ТЕЛЕФОН
-// =======================
-
-
+// джойстик вперёд/назад
 
 camera.position.add(
 forward.clone()
@@ -1020,6 +1075,10 @@ forward.clone()
 );
 
 
+
+
+
+// джойстик влево/вправо
 
 camera.position.add(
 right.clone()
@@ -1031,9 +1090,11 @@ joystickX * speed
 
 
 
+
+// вверх вниз
+
 camera.position.y +=
 verticalMove * speed;
-
 
 
 }
@@ -1045,9 +1106,38 @@ verticalMove * speed;
 
 
 // =======================
-// ИГРОВОЙ ЦИКЛ
+// СОХРАНЯЕМ СПАВН ПОСЛЕ ЗАГРУЗКИ
 // =======================
 
+
+// ждём пока камера найдёт позицию
+
+setTimeout(()=>{
+
+
+spawnPosition.copy(
+camera.position
+);
+
+
+spawnRotation.copy(
+camera.rotation
+);
+
+
+},1000);
+
+
+
+
+
+
+
+
+
+// =======================
+// ИГРОВОЙ ЦИКЛ
+// =======================
 
 function animate(){
 
@@ -1058,7 +1148,11 @@ animate
 
 
 
-updateMovement();
+movePC();
+
+
+moveMobile();
+
 
 
 
@@ -1085,7 +1179,6 @@ animate();
 // RESIZE
 // =======================
 
-
 window.addEventListener(
 "resize",
 ()=>{
@@ -1107,16 +1200,20 @@ window.innerHeight
 );
 
 
-
 });
 
 
 
 
 
+
+
 // =======================
-// ОТКЛЮЧЕНИЕ ПРОКРУТКИ
+// МОБИЛЬНАЯ НАСТРОЙКА
 // =======================
+
+document.body.style.margin =
+"0";
 
 
 document.body.style.overflow =
