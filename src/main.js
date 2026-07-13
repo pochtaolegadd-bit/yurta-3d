@@ -38,7 +38,6 @@ camera.position.set(
 
 
 
-
 // =======================
 // РЕНДЕР
 // =======================
@@ -67,7 +66,6 @@ document.body.style.margin = "0";
 document.body.appendChild(
     renderer.domElement
 );
-
 
 
 
@@ -106,7 +104,6 @@ scene.add(light);
 
 
 
-
 // =======================
 // ПЕРЕМЕННЫЕ
 // =======================
@@ -137,16 +134,12 @@ let verticalMove = 0;
 
 
 
-
 let cameraTouchId = null;
 
 
 let lastTouchX = 0;
 
 let lastTouchY = 0;
-
-
-
 
 
 
@@ -210,7 +203,6 @@ scene.add(yurta);
 
 
 
-
 console.log(
 "Юрта загружена"
 );
@@ -220,9 +212,9 @@ console.log(
 
 
 
+
 // =======================
-// НОВЫЙ СПАВН
-// ПЕРЕД ЮРТОЙ
+// БОКОВОЙ СПАВН
 // =======================
 
 
@@ -248,24 +240,34 @@ new THREE.Vector3()
 
 
 
-// ставим игрока перед передней частью юрты
+
+// ставим игрока ближе,
+// сбоку от юрты
 
 camera.position.set(
-    yurtaCenter.x,
-    yurtaCenter.y + 3,
-    yurtaCenter.z + size.z / 2 + 5
+
+    yurtaCenter.x + size.x / 2 + 2,
+
+    yurtaCenter.y + 2.5,
+
+    yurtaCenter.z + size.z / 3
+
 );
 
 
 
 
 
-
-// камера смотрит на центр юрты
+// смотрим в сторону входа
 
 camera.lookAt(
-    yurtaCenter
+new THREE.Vector3(
+    yurtaCenter.x,
+    yurtaCenter.y + 1,
+    yurtaCenter.z
+)
 );
+
 
 
 
@@ -281,15 +283,16 @@ camera.rotation.x;
 
 
 
+
 // сохраняем спавн
 
 spawnPosition.copy(
-    camera.position
+camera.position
 );
 
 
 spawnRotation.copy(
-    camera.rotation
+camera.rotation
 );
 
 
@@ -302,12 +305,10 @@ undefined,
 
 (error)=>{
 
-
 console.error(
 "Ошибка загрузки юрты:",
 error
 );
-
 
 }
 
@@ -359,8 +360,9 @@ renderer.domElement.requestPointerLock();
 
 
 
+
 // =======================
-// ПОВОРОТ КАМЕРЫ МЫШЬЮ
+// КАМЕРА МЫШЬЮ
 // =======================
 
 const mouseSensitivity = 0.002;
@@ -389,6 +391,7 @@ e.movementY * mouseSensitivity;
 
 
 
+
 pitch =
 Math.max(
 -Math.PI / 2,
@@ -400,6 +403,7 @@ pitch
 
 
 
+
 camera.rotation.order =
 "YXZ";
 
@@ -407,7 +411,6 @@ camera.rotation.order =
 
 camera.rotation.y =
 yaw;
-
 
 
 camera.rotation.x =
@@ -425,7 +428,7 @@ pitch;
 
 
 // =======================
-// R - ВЕРНУТЬ СПАВН
+// R - ВОЗВРАТ НА СПАВН
 // =======================
 
 document.addEventListener(
@@ -458,20 +461,19 @@ pitch =
 camera.rotation.x;
 
 
-
 }
-
 
 
 });
 
 // =======================
-// ПРОВЕРКА ТЕЛЕФОНА
+// ПРОВЕРКА СЕНСОРНОГО ЭКРАНА
 // =======================
 
 const isMobile =
 ('ontouchstart' in window) ||
 (navigator.maxTouchPoints > 0);
+
 
 
 
@@ -487,6 +489,7 @@ if(isMobile){
 // =======================
 // КАМЕРА ПАЛЬЦЕМ
 // =======================
+
 
 document.addEventListener(
 "touchstart",
@@ -541,6 +544,7 @@ touch.clientY;
 
 
 
+
 document.addEventListener(
 "touchmove",
 (e)=>{
@@ -567,13 +571,9 @@ lastTouchY;
 
 
 
-yaw -=
-dx * 0.005;
+yaw -= dx * 0.005;
 
-
-
-pitch -=
-dy * 0.005;
+pitch -= dy * 0.005;
 
 
 
@@ -602,6 +602,7 @@ pitch;
 
 
 
+
 lastTouchX =
 touch.clientX;
 
@@ -610,11 +611,12 @@ lastTouchY =
 touch.clientY;
 
 
-
 }
 
 
 });
+
+
 
 
 
@@ -642,6 +644,7 @@ cameraTouchId = null;
 
 
 });
+
 
 
 
@@ -690,7 +693,6 @@ joystick
 
 
 
-
 const stick =
 document.createElement("div");
 
@@ -725,6 +727,7 @@ stick
 
 
 
+
 joystick.addEventListener(
 "touchmove",
 (e)=>{
@@ -748,13 +751,13 @@ joystick.getBoundingClientRect();
 
 let x =
 touch.clientX -
-(rect.left+65);
+(rect.left + 65);
 
 
 
 let y =
 touch.clientY -
-(rect.top+65);
+(rect.top + 65);
 
 
 
@@ -814,9 +817,9 @@ joystick.addEventListener(
 ()=>{
 
 
-joystickX=0;
+joystickX = 0;
 
-joystickY=0;
+joystickY = 0;
 
 
 
@@ -841,7 +844,10 @@ stick.style.top =
 // =======================
 
 
-function createButton(text,bottom){
+function createButton(
+text,
+bottom
+){
 
 
 const btn =
@@ -889,6 +895,7 @@ return btn;
 
 
 
+
 const upButton =
 createButton(
 "⬆️",
@@ -906,10 +913,12 @@ createButton(
 
 
 
+
+
 upButton.ontouchstart =
 ()=>{
 
-verticalMove=1;
+verticalMove = 1;
 
 };
 
@@ -918,9 +927,11 @@ verticalMove=1;
 upButton.ontouchend =
 ()=>{
 
-verticalMove=0;
+verticalMove = 0;
 
 };
+
+
 
 
 
@@ -928,7 +939,7 @@ verticalMove=0;
 downButton.ontouchstart =
 ()=>{
 
-verticalMove=-1;
+verticalMove = -1;
 
 };
 
@@ -937,7 +948,7 @@ verticalMove=-1;
 downButton.ontouchend =
 ()=>{
 
-verticalMove=0;
+verticalMove = 0;
 
 };
 
@@ -964,6 +975,7 @@ forward
 
 
 forward.y = 0;
+
 
 forward.normalize();
 
@@ -1001,6 +1013,7 @@ forward.clone()
 
 
 
+
 if(keys["KeyS"]){
 
 camera.position.add(
@@ -1012,6 +1025,7 @@ forward.clone()
 
 
 
+
 if(keys["KeyA"]){
 
 camera.position.add(
@@ -1020,6 +1034,7 @@ right.clone()
 );
 
 }
+
 
 
 
@@ -1035,12 +1050,12 @@ right.clone()
 
 
 
-
 if(keys["Space"]){
 
 camera.position.y += speed;
 
 }
+
 
 
 
@@ -1086,7 +1101,9 @@ forward
 
 forward.y = 0;
 
+
 forward.normalize();
+
 
 
 
@@ -1110,12 +1127,15 @@ right.normalize();
 
 
 
+
 camera.position.add(
 forward.clone()
 .multiplyScalar(
 -joystickY * speed
 )
 );
+
+
 
 
 
@@ -1128,13 +1148,14 @@ joystickX * speed
 
 
 
+
+
 camera.position.y +=
 verticalMove * speed;
 
 
 
 }
-
 
 
 
@@ -1168,8 +1189,8 @@ camera
 );
 
 
-}
 
+}
 
 
 animate();
