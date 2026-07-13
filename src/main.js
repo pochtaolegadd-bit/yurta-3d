@@ -1,12 +1,15 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
 
 // =======================
 // СЦЕНА
 // =======================
 
 const scene = new THREE.Scene();
+
 scene.background = new THREE.Color(0xdcefff);
+
 
 // =======================
 // КАМЕРА
@@ -19,7 +22,14 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-camera.position.set(0, 5, 15);
+
+// стартовая позиция игрока
+camera.position.set(
+    0,
+    2,
+    6
+);
+
 
 // =======================
 // РЕНДЕР
@@ -34,510 +44,926 @@ renderer.setSize(
     window.innerHeight
 );
 
-renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setPixelRatio(
+    window.devicePixelRatio
+);
 
-document.body.style.margin = "0";
-document.body.style.overflow = "hidden";
 
 document.body.appendChild(renderer.domElement);
+
 
 // =======================
 // СВЕТ
 // =======================
 
-scene.add(
-    new THREE.AmbientLight(
-        0xffffff,
-        2
-    )
-);
-
-const light =
-new THREE.DirectionalLight(
+const ambientLight = new THREE.AmbientLight(
     0xffffff,
-    3
+    1.5
 );
 
-light.position.set(
+scene.add(ambientLight);
+
+
+const sun = new THREE.DirectionalLight(
+    0xffffff,
+    2
+);
+
+sun.position.set(
     5,
     10,
     5
 );
 
-scene.add(light);
+scene.add(sun);
 
+
+// =======================
+// ПЕРЕМЕННЫЕ
+// =======================
+
+let yurta = null;
+
+let playerSpeed = 0.12;
+
+
+// движение
+const keys = {};
+
+
+// камера
+let yaw = 0;
+let pitch = 0;
+
+
+// мобильное управление
+let joystickX = 0;
+let joystickY = 0;
+
+let mobileUp = false;
+let mobileDown = false;
 // =======================
 // ЗАГРУЗКА ЮРТЫ
 // =======================
 
-const loader =
-new GLTFLoader();
+const loader = new GLTFLoader();
 
-let yurta = null;
 
 loader.load(
-
     "/yurta.glb",
 
-    (gltf)=>{
+    (gltf) => {
 
         yurta = gltf.scene;
 
-        const box =
-        new THREE.Box3()
-        .setFromObject(yurta);
+        scene.add(yurta);
 
-        const center =
-        box.getCenter(
-            new THREE.Vector3()
+
+        // размер юрты
+        yurta.scale.set(
+            1,
+            1,
+            1
         );
 
-        yurta.position.sub(center);
 
-        scene.add(yurta);
+        // позиция юрты
+        yurta.position.set(
+            0,
+            0,
+            0
+        );
+
 
         console.log("Юрта загружена");
 
-    },
 
-    undefined,
-
-    (error)=>{
-
-        console.error(error);
-
-    }
-
-);
-// =======================
-// КЛАВИАТУРА
-// =======================
-
-const keys = {};
-
-document.addEventListener("keydown", (e) => {
-    keys[e.key.toLowerCase()] = true;
-});
-
-document.addEventListener("keyup", (e) => {
-    keys[e.key.toLowerCase()] = false;
-});
-
-// =======================
-// КООРДИНАТЫ КАМЕРЫ (P)
-// =======================
-
-document.addEventListener("keydown", (e) => {
-
-    const key = e.key.toLowerCase();
-
-    // Английская P или русская З
-    if (key === "p" || key === "з") {
-
-        console.clear();
-
-        console.log("========== КАМЕРА ==========");
+        // =======================
+        // СПАВН ИГРОКА
+        // =======================
 
         camera.position.set(
-            18.759733925127577,
-            -1.5000148620521192,
-            10.62070175717956
-            );
+            0,
+            2,
+            5
+        );
+
+
+        // смотрим на юрту
+        camera.lookAt(
+            yurta.position
+        );
+
+    },
+
+
+    (progress) => {
 
         console.log(
-            "Поворот:",
-            `x: ${camera.rotation.x}`,
-            `y: ${camera.rotation.y}`,
-            `z: ${camera.rotation.z}`
+            "Загрузка:",
+            Math.round(
+                progress.loaded / progress.total * 100
+            ),
+            "%"
+        );
+
+    },
+
+
+    (error) => {
+
+        console.error(
+            "Ошибка загрузки юрты:",
+            error
         );
 
     }
-
-});
-
-// =======================
-// ПОВОРОТ КАМЕРЫ МЫШЬЮ
-// =======================
-
-let yaw = 1.0199999999999967;
-let pitch = -0.03679632679489596;
-
-camera.rotation.order = "YXZ";
-camera.rotation.y = yaw;
-camera.rotation.x = pitch;
-
-renderer.domElement.addEventListener("click", () => {
-
-    renderer.domElement.requestPointerLock();
-
-});
-
-document.addEventListener("mousemove", (e) => {
-
-    if (document.pointerLockElement !== renderer.domElement)
-        return;
-
-    yaw -= e.movementX * 0.002;
-    pitch -= e.movementY * 0.002;
-
-    pitch = Math.max(
-        -Math.PI / 2,
-        Math.min(Math.PI / 2, pitch)
-    );
-
-    camera.rotation.order = "YXZ";
-    camera.rotation.y = yaw;
-    camera.rotation.x = pitch;
-
-});
-// =======================
-// МОБИЛЬНОЕ УПРАВЛЕНИЕ
-// =======================
-
-// Джойстик и кнопки будут только на телефоне
-const isMobile =
-/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-
-let joystickX = 0;
-let joystickY = 0;
-
-let verticalMove = 0;
-
-// Для поворота камеры пальцем
-let cameraTouchId = null;
-
-let lastTouchX = 0;
-let lastTouchY = 0;
+);
 
 // =======================
-// СОЗДАНИЕ ДЖОЙСТИКА
+// КЛАВИАТУРА WASD
 // =======================
 
-if (isMobile) {
+window.addEventListener(
+    "keydown",
+    (event) => {
 
-    const joystick = document.createElement("div");
+        keys[event.code] = true;
 
-    joystick.className = "mobileControl";
-
-    Object.assign(joystick.style, {
-        position: "fixed",
-        left: "40px",
-        bottom: "40px",
-        width: "130px",
-        height: "130px",
-        borderRadius: "50%",
-        background: "rgba(255,255,255,0.30)",
-        zIndex: "99999",
-        touchAction: "none"
-    });
-
-    document.body.appendChild(joystick);
-
-    const stick = document.createElement("div");
-
-    stick.className = "mobileControl";
-
-    Object.assign(stick.style, {
-        position: "absolute",
-        left: "40px",
-        top: "40px",
-        width: "50px",
-        height: "50px",
-        borderRadius: "50%",
-        background: "#ffffff"
-    });
-
-    joystick.appendChild(stick);
-
-    joystick.addEventListener("touchmove", (e) => {
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        const touch = e.touches[0];
-
-        const rect = joystick.getBoundingClientRect();
-
-        let x = touch.clientX - (rect.left + 65);
-        let y = touch.clientY - (rect.top + 65);
-
-        x = Math.max(-45, Math.min(45, x));
-        y = Math.max(-45, Math.min(45, y));
-
-        stick.style.left = (40 + x) + "px";
-        stick.style.top = (40 + y) + "px";
-
-        joystickX = x / 45;
-        joystickY = y / 45;
-
-    }, {
-        passive: false
-    });
-
-    joystick.addEventListener("touchend", () => {
-
-        joystickX = 0;
-        joystickY = 0;
-
-        stick.style.left = "40px";
-        stick.style.top = "40px";
-
-    });
-
-}
-// =======================
-// ПОВОРОТ КАМЕРЫ ПАЛЬЦЕМ
-// =======================
-
-if (isMobile) {
-
-    document.addEventListener("touchstart", (e) => {
-
-        for (const touch of e.changedTouches) {
-
-            if (
-                touch.target.classList &&
-                touch.target.classList.contains("mobileControl")
-            ) {
-                continue;
-            }
-
-            if (cameraTouchId === null) {
-
-                cameraTouchId = touch.identifier;
-
-                lastTouchX = touch.clientX;
-                lastTouchY = touch.clientY;
-
-            }
-
-        }
-
-    });
-
-    document.addEventListener("touchmove", (e) => {
-
-        for (const touch of e.changedTouches) {
-
-            if (touch.identifier !== cameraTouchId)
-                continue;
-
-            const dx = touch.clientX - lastTouchX;
-            const dy = touch.clientY - lastTouchY;
-
-            yaw -= dx * 0.005;
-            pitch -= dy * 0.005;
-
-            pitch = Math.max(
-                -Math.PI / 2,
-                Math.min(Math.PI / 2, pitch)
-            );
-
-            camera.rotation.order = "YXZ";
-            camera.rotation.y = yaw;
-            camera.rotation.x = pitch;
-
-            lastTouchX = touch.clientX;
-            lastTouchY = touch.clientY;
-
-        }
-
-    }, {
-        passive: true
-    });
-
-    document.addEventListener("touchend", (e) => {
-
-        for (const touch of e.changedTouches) {
-
-            if (touch.identifier === cameraTouchId) {
-
-                cameraTouchId = null;
-
-            }
-
-        }
-
-    });
-
-}
-// =======================
-// КНОПКИ ВВЕРХ / ВНИЗ
-// =======================
-
-if (isMobile) {
-
-    function createButton(text, bottom) {
-
-        const btn = document.createElement("button");
-
-        btn.className = "mobileControl";
-        btn.textContent = text;
-
-        Object.assign(btn.style, {
-            position: "fixed",
-            right: "40px",
-            bottom: bottom,
-            width: "75px",
-            height: "75px",
-            borderRadius: "50%",
-            border: "none",
-            background: "rgba(255,255,255,0.35)",
-            color: "#000",
-            fontSize: "34px",
-            zIndex: "99999",
-            touchAction: "none",
-            userSelect: "none",
-            WebkitUserSelect: "none"
-        });
-
-        document.body.appendChild(btn);
-
-        return btn;
     }
+);
 
-    const upButton = createButton("⬆️", "140px");
-    const downButton = createButton("⬇️", "50px");
 
-    function stopVertical() {
-        verticalMove = 0;
+window.addEventListener(
+    "keyup",
+    (event) => {
+
+        keys[event.code] = false;
+
     }
+);
 
-    upButton.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        verticalMove = 1;
-    }, { passive: false });
 
-    upButton.addEventListener("touchend", stopVertical);
-    upButton.addEventListener("touchcancel", stopVertical);
 
-    downButton.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        verticalMove = -1;
-    }, { passive: false });
-
-    downButton.addEventListener("touchend", stopVertical);
-    downButton.addEventListener("touchcancel", stopVertical);
-
-}
 // =======================
-// СВОБОДНЫЙ ПОЛЁТ
+// ДВИЖЕНИЕ ИГРОКА
 // =======================
 
-const speed = 0.15;
+function movePlayer() {
 
-function updateMovement() {
 
-    const forward = new THREE.Vector3();
+    let direction = new THREE.Vector3();
 
-    camera.getWorldDirection(forward);
 
-    forward.normalize();
+    // направление камеры
+    camera.getWorldDirection(direction);
 
-    const right = new THREE.Vector3();
+
+    direction.y = 0;
+
+    direction.normalize();
+
+
+
+    let right = new THREE.Vector3();
 
     right.crossVectors(
-        forward,
-        new THREE.Vector3(0, 1, 0)
+        direction,
+        camera.up
     );
 
     right.normalize();
 
-    // =======================
-    // ПК
-    // =======================
 
-    if (keys["w"] || keys["ц"]) {
+
+    // вперед
+    if (keys["KeyW"]) {
 
         camera.position.add(
-            forward.clone().multiplyScalar(speed)
+            direction.multiplyScalar(playerSpeed)
         );
 
     }
 
-    if (keys["s"] || keys["ы"]) {
+
+    // назад
+    if (keys["KeyS"]) {
 
         camera.position.add(
-            forward.clone().multiplyScalar(-speed)
+            direction.multiplyScalar(-playerSpeed)
         );
 
     }
 
-    if (keys["a"] || keys["ф"]) {
+
+    // влево
+    if (keys["KeyA"]) {
 
         camera.position.add(
-            right.clone().multiplyScalar(-speed)
+            right.multiplyScalar(-playerSpeed)
         );
 
     }
 
-    if (keys["d"] || keys["в"]) {
+
+    // вправо
+    if (keys["KeyD"]) {
 
         camera.position.add(
-            right.clone().multiplyScalar(speed)
+            right.multiplyScalar(playerSpeed)
         );
 
     }
 
-    if (keys[" "]) {
 
-        camera.position.y += speed;
+    // вверх
+    if (keys["Space"]) {
 
-    }
-
-    if (
-        keys["shift"] ||
-        keys["shiftleft"] ||
-        keys["shiftright"]
-    ) {
-
-        camera.position.y -= speed;
+        camera.position.y += playerSpeed;
 
     }
 
-    // =======================
-    // ТЕЛЕФОН
-    // =======================
 
-    if (isMobile) {
+    // вниз
+    if (keys["ShiftLeft"]) {
 
-        if (Math.abs(joystickY) > 0.02) {
-
-            camera.position.add(
-                forward.clone().multiplyScalar(
-                    -joystickY * speed
-                )
-            );
-
-        }
-
-        if (Math.abs(joystickX) > 0.02) {
-
-            camera.position.add(
-                right.clone().multiplyScalar(
-                    joystickX * speed
-                )
-            );
-
-        }
-
-        camera.position.y +=
-            verticalMove * speed;
+        camera.position.y -= playerSpeed;
 
     }
 
 }
+
+// =======================
+// КАМЕРА МЫШЬЮ
+// =======================
+
+let mouseDown = false;
+
+let lastMouseX = 0;
+let lastMouseY = 0;
+
+
+const mouseSensitivity = 0.002;
+
+
+
+window.addEventListener(
+    "mousedown",
+    (event) => {
+
+        mouseDown = true;
+
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+
+    }
+);
+
+
+
+window.addEventListener(
+    "mouseup",
+    () => {
+
+        mouseDown = false;
+
+    }
+);
+
+
+
+window.addEventListener(
+    "mousemove",
+    (event) => {
+
+
+        // если мышь не зажата — ничего не делаем
+        if (!mouseDown) return;
+
+
+
+        let movementX =
+            event.clientX - lastMouseX;
+
+
+        let movementY =
+            event.clientY - lastMouseY;
+
+
+
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+
+
+
+        yaw -= movementX * mouseSensitivity;
+
+        pitch -= movementY * mouseSensitivity;
+
+
+
+        // ограничение взгляда вверх/вниз
+        pitch = Math.max(
+            -1.5,
+            Math.min(
+                1.5,
+                pitch
+            )
+        );
+
+
+        updateCameraRotation();
+
+    }
+);
+
+
+
+// =======================
+// ПОВОРОТ КАМЕРЫ
+// =======================
+
+function updateCameraRotation() {
+
+
+    camera.rotation.order = "YXZ";
+
+
+    camera.rotation.y = yaw;
+
+    camera.rotation.x = pitch;
+
+
+}
+
+// =======================
+// ПРОВЕРКА ТЕЛЕФОНА
+// =======================
+
+const isMobile =
+    /Android|iPhone|iPad|iPod/i.test(
+        navigator.userAgent
+    );
+
+
+// =======================
+// СОЗДАЁМ МОБИЛЬНОЕ УПРАВЛЕНИЕ
+// =======================
+
+if (isMobile) {
+
+
+    const controls = document.createElement("div");
+
+    controls.id = "mobileControls";
+
+
+    controls.innerHTML = `
+
+        <div id="joystick">
+
+            <div id="stick"></div>
+
+        </div>
+
+
+        <div id="verticalButtons">
+
+            <button id="upButton">
+                ▲
+            </button>
+
+
+            <button id="downButton">
+                ▼
+            </button>
+
+        </div>
+
+    `;
+
+
+    document.body.appendChild(
+        controls
+    );
+
+
+
+    // =======================
+    // СТИЛИ
+    // =======================
+
+    const style =
+    document.createElement("style");
+
+
+    style.innerHTML = `
+
+
+    #mobileControls {
+
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        z-index: 10;
+
+        user-select: none;
+
+    }
+
+
+
+    #joystick {
+
+        width:120px;
+        height:120px;
+
+        border-radius:50%;
+
+        background:
+        rgba(255,255,255,0.25);
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+    }
+
+
+
+    #stick {
+
+        width:50px;
+        height:50px;
+
+        border-radius:50%;
+
+        background:
+        rgba(255,255,255,0.6);
+
+    }
+
+
+
+    #verticalButtons {
+
+        position:absolute;
+
+        left:170px;
+        bottom:0;
+
+        display:flex;
+        flex-direction:column;
+
+        gap:10px;
+
+    }
+
+
+
+    #verticalButtons button {
+
+        width:60px;
+        height:60px;
+
+        font-size:25px;
+
+    }
+
+
+    `;
+
+
+    document.head.appendChild(
+        style
+    );
+
+
+
+    // =======================
+    // ДЖОЙСТИК
+    // =======================
+
+    const joystick =
+        document.getElementById(
+            "joystick"
+        );
+
+
+    const stick =
+        document.getElementById(
+            "stick"
+        );
+
+
+
+    let joystickActive = false;
+
+
+
+    joystick.addEventListener(
+        "touchstart",
+        (e)=>{
+
+            joystickActive = true;
+
+        }
+    );
+
+
+
+    joystick.addEventListener(
+        "touchmove",
+        (e)=>{
+
+
+            if(!joystickActive)
+                return;
+
+
+            const touch =
+                e.touches[0];
+
+
+            const rect =
+                joystick.getBoundingClientRect();
+
+
+
+            let x =
+            touch.clientX -
+            (rect.left + rect.width/2);
+
+
+            let y =
+            touch.clientY -
+            (rect.top + rect.height/2);
+
+
+
+            let distance =
+            Math.sqrt(
+                x*x+y*y
+            );
+
+
+
+            const max = 45;
+
+
+
+            if(distance > max){
+
+                x =
+                x / distance * max;
+
+                y =
+                y / distance * max;
+
+            }
+
+
+
+            stick.style.transform =
+            `translate(${x}px,${y}px)`;
+
+
+            joystickX =
+            x / max;
+
+
+            joystickY =
+            y / max;
+
+
+
+        }
+    );
+
+
+
+    joystick.addEventListener(
+        "touchend",
+        ()=>{
+
+
+            joystickActive=false;
+
+
+            joystickX=0;
+
+            joystickY=0;
+
+
+            stick.style.transform =
+            "translate(0px,0px)";
+
+
+        }
+    );
+
+
+
+    // =======================
+    // КНОПКИ ВВЕРХ / ВНИЗ
+    // =======================
+
+    const up =
+    document.getElementById(
+        "upButton"
+    );
+
+
+    const down =
+    document.getElementById(
+        "downButton"
+    );
+
+
+
+    up.ontouchstart = () => {
+
+        mobileUp=true;
+
+    };
+
+
+    up.ontouchend = () => {
+
+        mobileUp=false;
+
+    };
+
+
+
+    down.ontouchstart = () => {
+
+        mobileDown=true;
+
+    };
+
+
+    down.ontouchend = () => {
+
+        mobileDown=false;
+
+    };
+
+
+}
+
+// =======================
+// МОБИЛЬНОЕ ДВИЖЕНИЕ
+// =======================
+
+function moveMobilePlayer() {
+
+
+    if (!isMobile)
+        return;
+
+
+
+    let direction =
+    new THREE.Vector3();
+
+
+    camera.getWorldDirection(
+        direction
+    );
+
+
+    direction.y = 0;
+
+    direction.normalize();
+
+
+
+    let right =
+    new THREE.Vector3();
+
+
+    right.crossVectors(
+        direction,
+        camera.up
+    );
+
+
+    right.normalize();
+
+
+
+    // вперед / назад
+
+    if (joystickY !== 0) {
+
+
+        camera.position.add(
+            direction.multiplyScalar(
+                -joystickY * playerSpeed
+            )
+        );
+
+
+    }
+
+
+
+    // влево / вправо
+
+    if (joystickX !== 0) {
+
+
+        camera.position.add(
+            right.multiplyScalar(
+                joystickX * playerSpeed
+            )
+        );
+
+
+    }
+
+
+
+    // вверх
+
+    if(mobileUp){
+
+        camera.position.y += playerSpeed;
+
+    }
+
+
+
+    // вниз
+
+    if(mobileDown){
+
+        camera.position.y -= playerSpeed;
+
+    }
+
+
+}
+
+
+
+
+// =======================
+// КАМЕРА НА ТЕЛЕФОНЕ
+// =======================
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+
+
+let cameraTouch = false;
+
+
+
+window.addEventListener(
+"touchstart",
+(e)=>{
+
+
+    // если касание по джойстику
+    // не трогаем камеру
+
+    if(
+        e.target.closest("#joystick") ||
+        e.target.closest("#verticalButtons")
+    ){
+
+        cameraTouch=false;
+
+        return;
+
+    }
+
+
+
+    // камера только одним пальцем
+
+    if(e.touches.length === 1){
+
+
+        cameraTouch=true;
+
+
+        touchStartX =
+        e.touches[0].clientX;
+
+
+        touchStartY =
+        e.touches[0].clientY;
+
+
+    }
+
+
+});
+
+
+
+
+window.addEventListener(
+"touchmove",
+(e)=>{
+
+
+    if(!cameraTouch)
+        return;
+
+
+
+    // второе касание игнорируем
+
+    if(e.touches.length !== 1)
+        return;
+
+
+
+    let x =
+    e.touches[0].clientX;
+
+
+    let y =
+    e.touches[0].clientY;
+
+
+
+    let dx =
+    x - touchStartX;
+
+
+    let dy =
+    y - touchStartY;
+
+
+
+    touchStartX=x;
+    touchStartY=y;
+
+
+
+    yaw -= dx * 0.005;
+
+    pitch -= dy * 0.005;
+
+
+
+    pitch =
+    Math.max(
+        -1.5,
+        Math.min(
+            1.5,
+            pitch
+        )
+    );
+
+
+
+    updateCameraRotation();
+
+
+
+});
+
+
+
+
+window.addEventListener(
+"touchend",
+()=>{
+
+    cameraTouch=false;
+
+});
+
 // =======================
 // ИГРОВОЙ ЦИКЛ
 // =======================
 
-function animate() {
+function animate(){
 
-    requestAnimationFrame(animate);
 
-    updateMovement();
+    requestAnimationFrame(
+        animate
+    );
+
+
+    // ПК движение
+
+    movePlayer();
+
+
+
+    // Телефон движение
+
+    moveMobilePlayer();
+
+
 
     renderer.render(
         scene,
@@ -546,79 +972,49 @@ function animate() {
 
 }
 
+
+
 animate();
 
+
+
+
 // =======================
-// RESIZE
+// АДАПТАЦИЯ ЭКРАНА
 // =======================
 
 window.addEventListener(
-    "resize",
-    () => {
+"resize",
+()=>{
 
-        camera.aspect =
-            window.innerWidth /
-            window.innerHeight;
 
-        camera.updateProjectionMatrix();
+    camera.aspect =
+    window.innerWidth /
+    window.innerHeight;
 
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
 
-        renderer.setPixelRatio(
-            window.devicePixelRatio
-        );
+    camera.updateProjectionMatrix();
 
-    }
-);
 
-// =======================
-// НАСТРОЙКИ
-// =======================
 
-camera.rotation.order = "YXZ";
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
 
-document.body.style.userSelect = "none";
-document.body.style.webkitUserSelect = "none";
 
-if (isMobile) {
-
-    document.body.style.touchAction = "none";
-
-}
-
-console.log("main.js загружен");
-// =======================
-// ПРИЦЕЛ
-// =======================
-
-const crosshair = document.createElement("div");
-
-Object.assign(crosshair.style, {
-    position: "fixed",
-    left: "50%",
-    top: "50%",
-    width: "6px",
-    height: "6px",
-    background: "#ffffff",
-    border: "2px solid #000000",
-    borderRadius: "50%",
-    transform: "translate(-50%, -50%)",
-    zIndex: "999999",
-    pointerEvents: "none"
 });
 
-document.body.appendChild(crosshair);
+
+
 
 // =======================
-// ПОДСКАЗКА ПО УПРАВЛЕНИЮ
+// ОТКЛЮЧАЕМ ПРОКРУТКУ
+// НА ТЕЛЕФОНЕ
 // =======================
 
-console.log("=== Управление ===");
-console.log("WASD - движение");
-console.log("Пробел - вверх");
-console.log("Shift - вниз");
-console.log("Мышь - осмотр");
-console.log("P - координаты камеры");
+document.body.style.margin = "0";
+
+document.body.style.overflow = "hidden";
+
+document.body.style.touchAction = "none";
