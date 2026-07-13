@@ -225,7 +225,7 @@ new THREE.Vector3()
 
 camera.position.set(
 
-    yurtaCenter.x + yurtaSize.x / 2 - 2,
+    yurtaCenter.x + yurtaSize.x / 2 - 6,
 
     yurtaCenter.y + 2,
 
