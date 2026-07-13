@@ -171,6 +171,16 @@ keys[e.key.toLowerCase()] = true;
 
 });
 
+document.addEventListener("keydown", (e) => {
+
+    if (e.key.toLowerCase() === "p") {
+
+        console.log("Позиция:", camera.position);
+        console.log("Поворот:", camera.rotation);
+
+    }
+
+});
 
 
 document.addEventListener(
