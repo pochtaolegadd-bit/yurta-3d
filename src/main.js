@@ -147,7 +147,6 @@ new THREE.Vector3();
 
 let spawnRotation =
 new THREE.Euler();
-
 // =======================
 // ЗАГРУЗКА ЮРТЫ
 // =======================
@@ -170,9 +169,22 @@ gltf.scene;
 
 
 
+// =======================
+// ИСПРАВЛЕНИЕ НАКЛОНА
+// =======================
+
+yurta.rotation.set(
+    0,
+    0,
+    0
+);
+
+
+
+
 
 // =======================
-// ЦЕНТРИРУЕМ ЮРТУ
+// ЦЕНТРИРОВКА
 // =======================
 
 const box =
@@ -200,17 +212,12 @@ scene.add(yurta);
 
 
 
-console.log(
-"Юрта загружена"
-);
-
-
-
 
 
 
 // =======================
-// СПАВН БЛИЖЕ К БОКОВОМУ ВХОДУ
+// СПАВН ОЧЕНЬ БЛИЗКО
+// К БОКОВОМУ ВХОДУ
 // =======================
 
 
@@ -236,15 +243,13 @@ new THREE.Vector3()
 
 
 
-// ещё ближе чем раньше
-
 camera.position.set(
 
-    yurtaCenter.x + size.x / 2 + 0.8,
+    yurtaCenter.x + size.x / 2 + 0.3,
 
-    yurtaCenter.y + 2.5,
+    yurtaCenter.y + 2,
 
-    yurtaCenter.z + size.z / 5
+    yurtaCenter.z + size.z / 6
 
 );
 
@@ -252,17 +257,12 @@ camera.position.set(
 
 
 
-// смотрим внутрь юрты
 
 camera.lookAt(
 new THREE.Vector3(
-
     yurtaCenter.x,
-
     yurtaCenter.y + 1,
-
     yurtaCenter.z
-
 )
 );
 
@@ -281,9 +281,6 @@ camera.rotation.x;
 
 
 
-
-// сохраняем точку спавна
-
 spawnPosition.copy(
 camera.position
 );
@@ -296,18 +293,21 @@ camera.rotation
 
 
 
-},
 
+console.log(
+"Спавн установлен возле входа"
+);
+
+
+
+},
 
 undefined,
 
 
 (error)=>{
 
-console.error(
-"Ошибка загрузки юрты:",
-error
-);
+console.error(error);
 
 }
 
