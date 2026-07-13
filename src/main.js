@@ -37,7 +37,6 @@ camera.position.set(
 
 
 
-
 // =======================
 // РЕНДЕР
 // =======================
@@ -70,7 +69,6 @@ document.body.appendChild(
 
 
 
-
 // =======================
 // СВЕТ
 // =======================
@@ -98,7 +96,6 @@ light.position.set(
 
 
 scene.add(light);
-
 
 
 
@@ -212,9 +209,8 @@ console.log(
 
 
 
-
 // =======================
-// БОКОВОЙ СПАВН
+// СПАВН БЛИЖЕ К БОКОВОМУ ВХОДУ
 // =======================
 
 
@@ -240,17 +236,15 @@ new THREE.Vector3()
 
 
 
-
-// ставим игрока ближе,
-// сбоку от юрты
+// ещё ближе чем раньше
 
 camera.position.set(
 
-    yurtaCenter.x + size.x / 2 + 2,
+    yurtaCenter.x + size.x / 2 + 0.8,
 
     yurtaCenter.y + 2.5,
 
-    yurtaCenter.z + size.z / 3
+    yurtaCenter.z + size.z / 5
 
 );
 
@@ -258,13 +252,17 @@ camera.position.set(
 
 
 
-// смотрим в сторону входа
+// смотрим внутрь юрты
 
 camera.lookAt(
 new THREE.Vector3(
+
     yurtaCenter.x,
+
     yurtaCenter.y + 1,
+
     yurtaCenter.z
+
 )
 );
 
@@ -284,11 +282,12 @@ camera.rotation.x;
 
 
 
-// сохраняем спавн
+// сохраняем точку спавна
 
 spawnPosition.copy(
 camera.position
 );
+
 
 
 spawnRotation.copy(
@@ -428,7 +427,7 @@ pitch;
 
 
 // =======================
-// R - ВОЗВРАТ НА СПАВН
+// R - ВЕРНУТЬСЯ НА СПАВН
 // =======================
 
 document.addEventListener(
@@ -461,13 +460,15 @@ pitch =
 camera.rotation.x;
 
 
+
 }
+
 
 
 });
 
 // =======================
-// ПРОВЕРКА СЕНСОРНОГО ЭКРАНА
+// ПРОВЕРКА ТЕЛЕФОНА
 // =======================
 
 const isMobile =
@@ -477,10 +478,6 @@ const isMobile =
 
 
 
-
-// =======================
-// МОБИЛЬНОЕ УПРАВЛЕНИЕ
-// =======================
 
 if(isMobile){
 
@@ -571,10 +568,13 @@ lastTouchY;
 
 
 
-yaw -= dx * 0.005;
+yaw -=
+dx * 0.005;
 
-pitch -= dy * 0.005;
 
+
+pitch -=
+dy * 0.005;
 
 
 
@@ -602,7 +602,6 @@ pitch;
 
 
 
-
 lastTouchX =
 touch.clientX;
 
@@ -615,8 +614,6 @@ touch.clientY;
 
 
 });
-
-
 
 
 
@@ -651,21 +648,16 @@ cameraTouchId = null;
 
 
 
-
-
 // =======================
 // ДЖОЙСТИК
 // =======================
-
 
 const joystick =
 document.createElement("div");
 
 
-
 joystick.className =
 "mobileControl";
-
 
 
 Object.assign(
@@ -697,10 +689,8 @@ const stick =
 document.createElement("div");
 
 
-
 stick.className =
 "mobileControl";
-
 
 
 Object.assign(
@@ -751,13 +741,13 @@ joystick.getBoundingClientRect();
 
 let x =
 touch.clientX -
-(rect.left + 65);
+(rect.left+65);
 
 
 
 let y =
 touch.clientY -
-(rect.top + 65);
+(rect.top+65);
 
 
 
@@ -844,20 +834,15 @@ stick.style.top =
 // =======================
 
 
-function createButton(
-text,
-bottom
-){
+function createButton(text,bottom){
 
 
 const btn =
 document.createElement("button");
 
 
-
 btn.className =
 "mobileControl";
-
 
 
 btn.textContent =
@@ -882,9 +867,7 @@ touchAction:"none"
 
 
 
-document.body.appendChild(
-btn
-);
+document.body.appendChild(btn);
 
 
 
@@ -930,7 +913,6 @@ upButton.ontouchend =
 verticalMove = 0;
 
 };
-
 
 
 
@@ -1013,7 +995,6 @@ forward.clone()
 
 
 
-
 if(keys["KeyS"]){
 
 camera.position.add(
@@ -1025,7 +1006,6 @@ forward.clone()
 
 
 
-
 if(keys["KeyA"]){
 
 camera.position.add(
@@ -1034,7 +1014,6 @@ right.clone()
 );
 
 }
-
 
 
 
@@ -1050,12 +1029,12 @@ right.clone()
 
 
 
+
 if(keys["Space"]){
 
 camera.position.y += speed;
 
 }
-
 
 
 
@@ -1108,7 +1087,6 @@ forward.normalize();
 
 
 
-
 const right =
 new THREE.Vector3();
 
@@ -1137,16 +1115,12 @@ forward.clone()
 
 
 
-
-
 camera.position.add(
 right.clone()
 .multiplyScalar(
 joystickX * speed
 )
 );
-
-
 
 
 
@@ -1191,6 +1165,7 @@ camera
 
 
 }
+
 
 
 animate();
