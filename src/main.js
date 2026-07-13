@@ -29,10 +29,13 @@ new THREE.PerspectiveCamera(
 
 camera.position.set(
     0,
-    5,
-    10
+    3,
+    8
 );
 
+
+camera.rotation.order =
+"YXZ";
 
 
 
@@ -58,14 +61,13 @@ window.innerHeight
 );
 
 
-
-document.body.style.margin = "0";
+document.body.style.margin =
+"0";
 
 
 document.body.appendChild(
 renderer.domElement
 );
-
 
 
 
@@ -82,7 +84,6 @@ new THREE.AmbientLight(
 ));
 
 
-
 const light =
 new THREE.DirectionalLight(
     0xffffff,
@@ -91,14 +92,13 @@ new THREE.DirectionalLight(
 
 
 light.position.set(
-5,
-10,
-5
+    5,
+    10,
+    5
 );
 
 
 scene.add(light);
-
 
 
 
@@ -141,18 +141,8 @@ let lastTouchX = 0;
 
 let lastTouchY = 0;
 
-
-
-let spawnPosition =
-new THREE.Vector3();
-
-
-
-let spawnRotation =
-new THREE.Euler();
-
 // =======================
-// ЗАГРУЗКА ЮРТЫ
+// ЮРТА
 // =======================
 
 const loader =
@@ -163,58 +153,15 @@ new GLTFLoader();
 loader.load(
 "/yurta.glb",
 
-
 (gltf)=>{
 
 
-yurta =
+const yurta =
 gltf.scene;
 
 
 
-
-
-// =======================
-// ИСПРАВЛЕНИЕ НАКЛОНА
-// =======================
-
-yurta.rotation.set(
-    0,
-    0,
-    0
-);
-
-
-
-// убираем наклоны частей модели
-
-yurta.traverse(
-(object)=>{
-
-
-if(object.isMesh){
-
-
-object.rotation.x = 0;
-
-object.rotation.z = 0;
-
-
-}
-
-
-});
-
-
-
-
-
-
-
-
-// =======================
-// ЦЕНТРИРОВКА
-// =======================
+// центрируем модель
 
 const box =
 new THREE.Box3()
@@ -229,13 +176,15 @@ new THREE.Vector3()
 
 
 
-yurta.position.sub(center);
+yurta.position.x -= center.x;
+
+yurta.position.y -= center.y;
+
+yurta.position.z -= center.z;
 
 
 
 scene.add(yurta);
-
-
 
 
 
@@ -246,17 +195,23 @@ console.log(
 
 
 
-
-
-
 // =======================
-// СПАВН В 2 РАЗА БЛИЖЕ
+// СПАВН
 // =======================
 
+// тот самый вариант,
+// который был почти правильный
 
 const yurtaBox =
 new THREE.Box3()
 .setFromObject(yurta);
+
+
+
+const yurtaSize =
+yurtaBox.getSize(
+new THREE.Vector3()
+);
 
 
 
@@ -268,20 +223,15 @@ new THREE.Vector3()
 
 
 
-
-
 camera.position.set(
 
-    yurtaCenter.x + 0.7,
+    yurtaCenter.x + yurtaSize.x / 2 + 1,
 
-    yurtaCenter.y + 2,
+    yurtaCenter.y + 2.5,
 
-    yurtaCenter.z + 0.5
+    yurtaCenter.z + yurtaSize.z / 3
 
 );
-
-
-
 
 
 
@@ -303,31 +253,12 @@ new THREE.Vector3(
 
 
 
-
 yaw =
 camera.rotation.y;
 
 
 pitch =
 camera.rotation.x;
-
-
-
-
-
-
-
-spawnPosition.copy(
-camera.position
-);
-
-
-
-spawnRotation.copy(
-camera.rotation
-);
-
-
 
 
 
@@ -339,9 +270,7 @@ undefined,
 
 (error)=>{
 
-console.error(
-error
-);
+console.error(error);
 
 }
 
@@ -355,7 +284,7 @@ document.addEventListener(
 "keydown",
 (e)=>{
 
-keys[e.code] = true;
+keys[e.key.toLowerCase()] = true;
 
 });
 
@@ -365,7 +294,7 @@ document.addEventListener(
 "keyup",
 (e)=>{
 
-keys[e.code] = false;
+keys[e.key.toLowerCase()] = false;
 
 });
 
@@ -395,14 +324,10 @@ renderer.domElement.requestPointerLock();
 
 
 
+
 // =======================
-// МЫШЬ FPS
+// МЫШЬ ПК
 // =======================
-
-
-const mouseSensitivity = 0.002;
-
-
 
 document.addEventListener(
 "mousemove",
@@ -416,39 +341,22 @@ return;
 
 
 
-// защита от первого рывка
 
-if(
-e.movementX === 0 &&
-e.movementY === 0
-)
-return;
+yaw -= e.movementX * 0.002;
 
-
-
-
-yaw -=
-e.movementX * mouseSensitivity;
-
-
-
-pitch -=
-e.movementY * mouseSensitivity;
-
+pitch -= e.movementY * 0.002;
 
 
 
 
 pitch =
 Math.max(
--Math.PI / 2,
+-Math.PI/2,
 Math.min(
-Math.PI / 2,
+Math.PI/2,
 pitch
 )
 );
-
-
 
 
 
@@ -468,74 +376,21 @@ pitch;
 
 });
 
-
-
-
-
-
-
-
 // =======================
-// R - ВОЗВРАТ НА СПАВН
+// МОБИЛЬНОЕ УПРАВЛЕНИЕ
 // =======================
 
-document.addEventListener(
-"keydown",
-(e)=>{
-
-
-if(
-e.code === "KeyR"
-){
-
-
-camera.position.copy(
-spawnPosition
-);
-
-
-
-camera.rotation.copy(
-spawnRotation
-);
-
-
-
-yaw =
-camera.rotation.y;
-
-
-pitch =
-camera.rotation.x;
-
-
-
-}
-
-
-
-});
-
-// =======================
-// ПРОВЕРКА ТЕЛЕФОНА
-// =======================
-
-const isMobile =
-('ontouchstart' in window) ||
-(navigator.maxTouchPoints > 0);
-
-
-
+const isMobile = true;
 
 
 
 if(isMobile){
 
 
-
 // =======================
 // КАМЕРА ПАЛЬЦЕМ
 // =======================
+
 
 document.addEventListener(
 "touchstart",
@@ -545,17 +400,8 @@ document.addEventListener(
 for(const touch of e.changedTouches){
 
 
-const target =
-document.elementFromPoint(
-touch.clientX,
-touch.clientY
-);
-
-
-
 if(
-target &&
-target.classList.contains(
+touch.target.classList.contains(
 "mobileControl"
 )
 )
@@ -591,7 +437,6 @@ touch.clientY;
 
 
 
-
 document.addEventListener(
 "touchmove",
 (e)=>{
@@ -608,25 +453,18 @@ continue;
 
 
 const dx =
-touch.clientX -
-lastTouchX;
+touch.clientX - lastTouchX;
 
 
 const dy =
-touch.clientY -
-lastTouchY;
+touch.clientY - lastTouchY;
 
 
 
-yaw -=
-dx * 0.005;
+yaw -= dx * 0.005;
 
 
-
-pitch -=
-dy * 0.005;
-
-
+pitch -= dy * 0.005;
 
 
 
@@ -638,8 +476,6 @@ Math.PI/2,
 pitch
 )
 );
-
-
 
 
 
@@ -665,9 +501,13 @@ lastTouchY =
 touch.clientY;
 
 
+
 }
 
 
+},
+{
+passive:true
 });
 
 
@@ -704,14 +544,13 @@ cameraTouchId = null;
 
 
 
-
 // =======================
 // ДЖОЙСТИК
 // =======================
 
+
 const joystick =
 document.createElement("div");
-
 
 
 joystick.className =
@@ -744,11 +583,8 @@ joystick
 
 
 
-
-
 const stick =
 document.createElement("div");
-
 
 
 stick.className =
@@ -780,13 +616,13 @@ stick
 
 
 
-
 joystick.addEventListener(
 "touchmove",
 (e)=>{
 
 
 e.preventDefault();
+
 
 e.stopPropagation();
 
@@ -804,14 +640,13 @@ joystick.getBoundingClientRect();
 
 let x =
 touch.clientX -
-(rect.left + 65);
+(rect.left+65);
 
 
 
 let y =
 touch.clientY -
-(rect.top + 65);
-
+(rect.top+65);
 
 
 
@@ -841,7 +676,6 @@ stick.style.left =
 40+x+"px";
 
 
-
 stick.style.top =
 40+y+"px";
 
@@ -860,7 +694,6 @@ y/45;
 {
 passive:false
 });
-
 
 
 
@@ -894,10 +727,10 @@ stick.style.top =
 
 
 
-
 // =======================
 // КНОПКИ ВВЕРХ / ВНИЗ
 // =======================
+
 
 function createButton(
 text,
@@ -909,10 +742,8 @@ const btn =
 document.createElement("button");
 
 
-
 btn.className =
 "mobileControl";
-
 
 
 btn.textContent =
@@ -937,9 +768,7 @@ touchAction:"none"
 
 
 
-document.body.appendChild(
-btn
-);
+document.body.appendChild(btn);
 
 
 
@@ -964,7 +793,6 @@ createButton(
 "⬇️",
 "50px"
 );
-
 
 
 
@@ -1011,10 +839,11 @@ verticalMove = 0;
 }
 
 // =======================
-// ДВИЖЕНИЕ ПК
+// ДВИЖЕНИЕ
 // =======================
 
-function movePC(){
+function updateMovement(){
+
 
 
 const forward =
@@ -1025,12 +854,6 @@ new THREE.Vector3();
 camera.getWorldDirection(
 forward
 );
-
-
-
-forward.y = 0;
-
-forward.normalize();
 
 
 
@@ -1055,67 +878,94 @@ right.normalize();
 
 
 
-if(keys["KeyW"]){
+// =======================
+// ПК
+// =======================
+
+
+if(
+keys["w"] ||
+keys["ц"]
+){
+
 
 camera.position.add(
 forward.clone()
 .multiplyScalar(speed)
 );
 
+
 }
 
 
 
-if(keys["KeyS"]){
+if(
+keys["s"] ||
+keys["ы"]
+){
+
 
 camera.position.add(
 forward.clone()
 .multiplyScalar(-speed)
 );
 
+
 }
 
 
 
-if(keys["KeyA"]){
+if(
+keys["a"] ||
+keys["ф"]
+){
+
 
 camera.position.add(
 right.clone()
 .multiplyScalar(-speed)
 );
 
+
 }
 
 
 
-if(keys["KeyD"]){
+if(
+keys["d"] ||
+keys["в"]
+){
+
 
 camera.position.add(
 right.clone()
 .multiplyScalar(speed)
 );
 
+
 }
 
 
 
+if(
+keys[" "]
+){
 
-
-if(keys["Space"]){
 
 camera.position.y += speed;
 
+
 }
 
 
 
-if(keys["ShiftLeft"]){
+if(
+keys["shift"]
+){
+
 
 camera.position.y -= speed;
 
-}
-
-
 
 }
 
@@ -1127,53 +977,8 @@ camera.position.y -= speed;
 
 
 // =======================
-// ДВИЖЕНИЕ ТЕЛЕФОНА
+// ТЕЛЕФОН
 // =======================
-
-function moveMobile(){
-
-
-if(!isMobile)
-return;
-
-
-
-const forward =
-new THREE.Vector3();
-
-
-
-camera.getWorldDirection(
-forward
-);
-
-
-
-forward.y = 0;
-
-forward.normalize();
-
-
-
-
-
-const right =
-new THREE.Vector3();
-
-
-
-right.crossVectors(
-forward,
-new THREE.Vector3(0,1,0)
-);
-
-
-
-right.normalize();
-
-
-
-
 
 
 camera.position.add(
@@ -1207,8 +1012,10 @@ verticalMove * speed;
 
 
 
+
+
 // =======================
-// ИГРОВОЙ ЦИКЛ
+// ЗАПУСК
 // =======================
 
 function animate(){
@@ -1220,10 +1027,7 @@ animate
 
 
 
-movePC();
-
-
-moveMobile();
+updateMovement();
 
 
 
@@ -1239,6 +1043,8 @@ camera
 
 
 animate();
+
+
 
 
 
@@ -1280,17 +1086,9 @@ window.innerHeight
 
 
 
-// =======================
-// НАСТРОЙКИ СТРАНИЦЫ
-// =======================
-
 document.body.style.margin =
 "0";
 
 
 document.body.style.overflow =
 "hidden";
-
-
-document.body.style.touchAction =
-"none";
