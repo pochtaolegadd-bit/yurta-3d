@@ -27,12 +27,13 @@ new THREE.PerspectiveCamera(
 );
 
 
-// временный спавн
+
 camera.position.set(
     0,
     3,
     8
 );
+
 
 
 
@@ -59,12 +60,13 @@ renderer.setSize(
 
 
 
-document.body.style.margin="0";
+document.body.style.margin = "0";
 
 
 document.body.appendChild(
     renderer.domElement
 );
+
 
 
 
@@ -82,21 +84,22 @@ new THREE.AmbientLight(
 
 
 
-const sun =
+const light =
 new THREE.DirectionalLight(
     0xffffff,
     3
 );
 
 
-sun.position.set(
+light.position.set(
     5,
     10,
     5
 );
 
 
-scene.add(sun);
+scene.add(light);
+
 
 
 
@@ -109,7 +112,6 @@ scene.add(sun);
 let yurta = null;
 
 
-
 let yaw = 0;
 
 let pitch = 0;
@@ -119,8 +121,16 @@ let pitch = 0;
 const keys = {};
 
 
-
 const speed = 0.15;
+
+
+
+let spawnPosition =
+new THREE.Vector3();
+
+
+let spawnRotation =
+new THREE.Euler();
 
 // =======================
 // ЗАГРУЗКА ЮРТЫ
@@ -143,8 +153,10 @@ gltf.scene;
 
 
 
+
+
 // =======================
-// ЦЕНТРИРОВАНИЕ ЮРТЫ
+// ЦЕНТРИРУЕМ МОДЕЛЬ
 // =======================
 
 const box =
@@ -168,15 +180,18 @@ yurta.position.z -= center.z;
 
 
 
+
 scene.add(
 yurta
 );
 
 
 
+
 console.log(
 "Юрта загружена"
 );
+
 
 
 
@@ -201,7 +216,7 @@ new THREE.Vector3()
 
 
 
-// перед юртой
+// позиция перед юртой
 
 camera.position.set(
     spawn.x,
@@ -229,6 +244,20 @@ camera.rotation.x;
 
 
 
+
+// сохраняем точку
+
+spawnPosition.copy(
+    camera.position
+);
+
+
+spawnRotation.copy(
+    camera.rotation
+);
+
+
+
 },
 
 
@@ -237,17 +266,19 @@ undefined,
 
 (error)=>{
 
+
 console.error(
-"Ошибка загрузки юрты:",
+"Ошибка юрты:",
 error
 );
+
 
 }
 
 );
 
 // =======================
-// КЛАВИАТУРА
+// КЛАВИАТУРА ПК
 // =======================
 
 document.addEventListener(
@@ -256,7 +287,9 @@ document.addEventListener(
 
 keys[e.code] = true;
 
+
 });
+
 
 
 document.addEventListener(
@@ -265,13 +298,15 @@ document.addEventListener(
 
 keys[e.code] = false;
 
+
 });
 
 
 
 
+
 // =======================
-// POINTER LOCK (КАК В ИГРАХ)
+// POINTER LOCK
 // =======================
 
 
@@ -290,12 +325,12 @@ renderer.domElement.requestPointerLock();
 
 
 
+
 // =======================
-// ВРАЩЕНИЕ КАМЕРЫ МЫШЬЮ
+// МЫШЬ КАМЕРА
 // =======================
 
-
-const sensitivity = 0.0025;
+const mouseSensitivity = 0.0025;
 
 
 
@@ -311,15 +346,13 @@ return;
 
 
 
-
 yaw -=
-e.movementX * sensitivity;
+e.movementX * mouseSensitivity;
 
 
 
 pitch -=
-e.movementY * sensitivity;
-
+e.movementY * mouseSensitivity;
 
 
 
@@ -334,10 +367,8 @@ pitch
 
 
 
-
 camera.rotation.order =
 "YXZ";
-
 
 
 camera.rotation.y =
@@ -351,43 +382,14 @@ pitch;
 
 });
 
-// =======================
-// СОХРАНЕНИЕ СПАВНА
-// =======================
 
-let spawnPosition =
-new THREE.Vector3();
-
-
-
-let spawnRotation =
-new THREE.Euler();
-
-
-
-
-
-// функция установки спавна
-
-function setSpawn(){
-
-spawnPosition.copy(
-    camera.position
-);
-
-
-spawnRotation.copy(
-    camera.rotation
-);
-
-}
 
 
 
 
 
 // =======================
-// R - ВЕРНУТЬСЯ НА СПАВН
+// R - ВЕРНУТЬ СПАВН
 // =======================
 
 document.addEventListener(
@@ -421,6 +423,48 @@ camera.rotation.x;
 }
 
 
+});
+
+// =======================
+// КЛАВИАТУРА ПК
+// =======================
+
+document.addEventListener(
+"keydown",
+(e)=>{
+
+keys[e.code] = true;
+
+
+});
+
+
+
+document.addEventListener(
+"keyup",
+(e)=>{
+
+keys[e.code] = false;
+
+
+});
+
+
+
+
+
+// =======================
+// POINTER LOCK
+// =======================
+
+
+renderer.domElement.addEventListener(
+"click",
+()=>{
+
+
+renderer.domElement.requestPointerLock();
+
 
 });
 
@@ -429,143 +473,105 @@ camera.rotation.x;
 
 
 
+
 // =======================
-// ДВИЖЕНИЕ ПК
+// МЫШЬ КАМЕРА
 // =======================
 
-function movePC(){
+const mouseSensitivity = 0.0025;
 
 
 
-const forward =
-new THREE.Vector3();
+document.addEventListener(
+"mousemove",
+(e)=>{
+
+
+if(
+document.pointerLockElement !== renderer.domElement
+)
+return;
 
 
 
-camera.getWorldDirection(
-forward
+yaw -=
+e.movementX * mouseSensitivity;
+
+
+
+pitch -=
+e.movementY * mouseSensitivity;
+
+
+
+pitch =
+Math.max(
+-Math.PI / 2,
+Math.min(
+Math.PI / 2,
+pitch
+)
 );
 
 
 
-forward.y = 0;
+camera.rotation.order =
+"YXZ";
 
 
-forward.normalize();
+camera.rotation.y =
+yaw;
 
 
-
-
-
-
-const right =
-new THREE.Vector3();
+camera.rotation.x =
+pitch;
 
 
 
-right.crossVectors(
-forward,
-camera.up
+});
+
+
+
+
+
+
+
+// =======================
+// R - ВЕРНУТЬ СПАВН
+// =======================
+
+document.addEventListener(
+"keydown",
+(e)=>{
+
+
+if(
+e.code === "KeyR"
+){
+
+
+camera.position.copy(
+    spawnPosition
 );
 
 
-right.normalize();
-
-
-
-
-
-// вперед
-
-if(keys["KeyW"]){
-
-
-camera.position.add(
-forward.clone()
-.multiplyScalar(speed)
+camera.rotation.copy(
+    spawnRotation
 );
 
 
-}
+yaw =
+camera.rotation.y;
 
 
-
-
-// назад
-
-if(keys["KeyS"]){
-
-
-camera.position.add(
-forward.clone()
-.multiplyScalar(-speed)
-);
+pitch =
+camera.rotation.x;
 
 
 }
 
 
-
-
-// влево
-
-if(keys["KeyA"]){
-
-
-camera.position.add(
-right.clone()
-.multiplyScalar(-speed)
-);
-
-
-}
-
-
-
-
-// вправо
-
-if(keys["KeyD"]){
-
-
-camera.position.add(
-right.clone()
-.multiplyScalar(speed)
-);
-
-
-}
-
-
-
-
-
-// вверх
-
-if(keys["Space"]){
-
-
-camera.position.y += speed;
-
-
-}
-
-
-
-
-// вниз
-
-if(keys["ShiftLeft"]){
-
-
-camera.position.y -= speed;
-
-
-}
-
-
-
-}
+});
 
 // =======================
 // МОБИЛЬНОЕ УПРАВЛЕНИЕ
@@ -582,6 +588,11 @@ let cameraTouchId = null;
 let lastTouchX = 0;
 let lastTouchY = 0;
 
+
+
+
+
+if(isMobile){
 
 
 
@@ -644,6 +655,7 @@ touch.clientY;
 
 
 
+
 document.addEventListener(
 "touchmove",
 (e)=>{
@@ -660,15 +672,19 @@ continue;
 
 
 const dx =
-touch.clientX-lastTouchX;
+touch.clientX -
+lastTouchX;
+
 
 
 const dy =
-touch.clientY-lastTouchY;
+touch.clientY -
+lastTouchY;
 
 
 
 yaw -= dx * 0.005;
+
 
 pitch -= dy * 0.005;
 
@@ -704,6 +720,7 @@ touch.clientX;
 
 lastTouchY =
 touch.clientY;
+
 
 
 }
@@ -742,7 +759,6 @@ cameraTouchId = null;
 
 
 
-
 // =======================
 // ДЖОЙСТИК
 // =======================
@@ -771,7 +787,6 @@ zIndex:"99999",
 touchAction:"none"
 }
 );
-
 
 
 document.body.appendChild(
@@ -814,6 +829,7 @@ stick
 
 
 
+
 joystick.addEventListener(
 "touchmove",
 (e)=>{
@@ -837,20 +853,23 @@ joystick.getBoundingClientRect();
 
 let x =
 touch.clientX -
-(rect.left+65);
+(rect.left + 65);
 
 
 
 let y =
 touch.clientY -
-(rect.top+65);
+(rect.top + 65);
 
 
 
 x =
 Math.max(
 -45,
-Math.min(45,x)
+Math.min(
+45,
+x
+)
 );
 
 
@@ -858,7 +877,10 @@ Math.min(45,x)
 y =
 Math.max(
 -45,
-Math.min(45,y)
+Math.min(
+45,
+y
+)
 );
 
 
@@ -889,6 +911,7 @@ passive:false
 
 
 
+
 joystick.addEventListener(
 "touchend",
 ()=>{
@@ -897,6 +920,7 @@ joystick.addEventListener(
 joystickX = 0;
 
 joystickY = 0;
+
 
 
 stick.style.left =
@@ -916,7 +940,7 @@ stick.style.top =
 
 
 // =======================
-// КНОПКИ ВВЕРХ / ВНИЗ
+// КНОПКИ ПОЛЁТА
 // =======================
 
 
@@ -961,12 +985,10 @@ btn
 );
 
 
-
 return btn;
 
 
 }
-
 
 
 
@@ -1025,6 +1047,10 @@ verticalMove = 0;
 
 };
 
+
+
+}
+
 // =======================
 // ДВИЖЕНИЕ ТЕЛЕФОНА
 // =======================
@@ -1032,13 +1058,20 @@ verticalMove = 0;
 function moveMobile(){
 
 
+if(!isMobile)
+return;
+
+
+
 const forward =
 new THREE.Vector3();
+
 
 
 camera.getWorldDirection(
 forward
 );
+
 
 
 forward.y = 0;
@@ -1049,8 +1082,10 @@ forward.normalize();
 
 
 
+
 const right =
 new THREE.Vector3();
+
 
 
 right.crossVectors(
@@ -1065,7 +1100,7 @@ right.normalize();
 
 
 
-// джойстик вперёд/назад
+// вперёд / назад
 
 camera.position.add(
 forward.clone()
@@ -1078,7 +1113,7 @@ forward.clone()
 
 
 
-// джойстик влево/вправо
+// влево / вправо
 
 camera.position.add(
 right.clone()
@@ -1091,42 +1126,14 @@ joystickX * speed
 
 
 
-// вверх вниз
+// вверх / вниз
 
 camera.position.y +=
 verticalMove * speed;
 
 
+
 }
-
-
-
-
-
-
-
-// =======================
-// СОХРАНЯЕМ СПАВН ПОСЛЕ ЗАГРУЗКИ
-// =======================
-
-
-// ждём пока камера найдёт позицию
-
-setTimeout(()=>{
-
-
-spawnPosition.copy(
-camera.position
-);
-
-
-spawnRotation.copy(
-camera.rotation
-);
-
-
-},1000);
-
 
 
 
@@ -1175,6 +1182,7 @@ animate();
 
 
 
+
 // =======================
 // RESIZE
 // =======================
@@ -1200,6 +1208,7 @@ window.innerHeight
 );
 
 
+
 });
 
 
@@ -1207,9 +1216,8 @@ window.innerHeight
 
 
 
-
 // =======================
-// МОБИЛЬНАЯ НАСТРОЙКА
+// НАСТРОЙКИ СТРАНИЦЫ
 // =======================
 
 document.body.style.margin =
